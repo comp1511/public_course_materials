@@ -33,7 +33,7 @@ AddType text/plain c h pbm pl py sh
 RewriteEngine On
 
 # filesystem permissions should prevent these accesses too
-RedirectMatch 404 (/|^)(\.\.|autotest|\.git.*|scripts|work|htaccess\..*)(/|$)
+RedirectMatch 404 (/|^)(\.\.|.*.auto(test|marking)|\.git.*|scripts|work|htaccess\..*)(/|$)
 
 # Skip all remaining rewrites if already going to be served by flask_tutors.cgi
 
