@@ -96,6 +96,8 @@ And so on for larger values of <b>n</b>.
 <p>
 For example:
 
+{#
+
 {{execute("""
 ./iterated_printpy.pl 0 'Perl that prints Python'|python3;
 ./iterated_printpy.pl 1 'Perl that prints Python that Prints Perl that print Python'|python3|perl|python3;
@@ -103,6 +105,21 @@ For example:
 ./iterated_printpy.pl 4 'Andrew Rocks!'|python3|perl|python3|perl|python3|perl|python3|perl|python3;
 ./iterated_printpy.pl 10 'I love COMP[29]041!'|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3
 """, cwd="solutions")}}
+
+#}
+
+<pre class="command_line" style="max-height: 32em;overflow:  auto;">
+<kbd class="shell">./iterated_printpy.pl 0 'Perl that prints Python'|python3</kbd>
+Perl that prints Python
+<kbd class="shell">./iterated_printpy.pl 1 'Perl that prints Python that Prints Perl that print Python'|python3|perl|python3</kbd>
+Perl that prints Python that Prints Perl that print Python
+<kbd class="shell">./iterated_printpy.pl 2 'Perl that ....'|python3|perl|python3|perl|python3</kbd>
+Perl that ....
+<kbd class="shell">./iterated_printpy.pl 4 'Andrew Rocks!'|python3|perl|python3|perl|python3|perl|python3|perl|python3</kbd>
+Andrew Rocks!
+<kbd class="shell">./iterated_printpy.pl 10 'I love COMP[29]041!'|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3</kbd>
+I love COMP[29]041!
+</pre>
 
 You can assume the string contains only ASCII characters.
 You can not make other assumptions about the characters in the string.
