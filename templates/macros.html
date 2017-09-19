@@ -1,7 +1,15 @@
 {% macro execute(shell_command, show_command=True, cwd='', height='32em', split_semicolon=True, input="",show_eof=True) -%}
-{% if not cwd.startswith('/') %}
-{% set cwd = os.path.join(directory_absolute_pathname, cwd) %}
+
+{% if not cwd %}
+	{% if directory_relative_pathname.startswith('tlb/') %}
+		{% set cwd = os.path.join('private', directory_relative_pathname, 'solutions') %}
+	{% else %}
+		{% set cwd = directory_relative_pathname,  %}
+	{% endif %}
+{% elif cwd == 'solutions' %}
+	{% set cwd = os.path.join('private', directory_relative_pathname, 'solutions') %}
 {% endif %}
+
 {% if split_semicolon %}
 {% set command_list = re.split('\\s*;\\s*', shell_command.strip()) %}
 {% else %}
