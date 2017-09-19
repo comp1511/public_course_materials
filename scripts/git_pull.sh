@@ -2,7 +2,7 @@
 exec 2>&1
 . $(dirname $(readlink -f $0))/config.sh
 
-cd $public_html_session_directory
+cd $public_html_session_directory/private
 if git pull origin master
 then
         :
