@@ -1,0 +1,25 @@
+max_cpu=3
+max_wall_clock=30
+
+shell=True
+setup_command_shell=True
+
+setup_command="rm -f *.htm*"
+program=htm2html.sh
+htm2html_0 command="touch fred.htm; ./htm2html.sh; ls *.htm*"
+htm2html_1 command="touch a.htm andrew.htm index.htm fred.html; ./htm2html.sh; ls *.htm*"
+htm2html_2 command="touch index.htm index.html; ./htm2html.sh 2>&1; ls index*.htm*"
+htm2html_3 command="touch a.htm a.html; ./htm2html.sh 2>&1; echo Exit status from ./htm2html.sh was $?"
+htm2html_4 command="touch 'A  File  with   more spaces      .htm'; ./htm2html.sh; ls *.htm*"
+
+setup_command=
+program=missing_include.sh
+missing_include_0 command="./missing_include.sh a.c"
+missing_include_1 command="./missing_include.sh fred.c"
+missing_include_2 command="./missing_include.sh a.c fred.c b.c"
+
+setup_command=
+program=first_name.sh
+first_name_0 command="./first_name.sh e3.txt"
+first_name_1 command="./first_name.sh e4.txt"
+first_name_2 command="./first_name.sh e5.txt"

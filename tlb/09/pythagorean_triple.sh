@@ -1,0 +1,1 @@
+lab.autotest/pythagorean_triple.sh

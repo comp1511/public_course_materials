@@ -1,0 +1,115 @@
+{% set programs = 'filter_digits.pl nth_line.pl snap_n.pl' %}
+{% set submission_deadline = 'Wednesday 6 September 23:59' %}
+{% extends "templates/test.html" %}
+
+{% block questions %}
+
+<h3>Exercise: Remove Digits</h3>
+
+Write a Perl program <code>filter_digits.pl</code> that reads from standard input and writes to standard output
+removeing all all digit.
+
+{{execute("./filter_digits.pl", cwd='solutions', input="I can think of 100's no 1000,000s\nof other things I'd rather\nbe doing than these 3 questions\n")}}
+
+{{autotest_reminder("filter_digits.pl")}}
+
+<p></p>
+<h3>Exercise: n-th line</h3>
+
+Write a Perl program to print the <i>n</i>-th line of a file.
+<p>
+It will be given two arguments <i>n</i> and the file name.
+<p>
+Your program should print nothing if the file does not have an  <i>n</i>-th line
+<p>
+You can assume <i>n</i> is an integer.
+<p>
+No error checking is necessary.
+
+
+<pre class="command_line">
+<kbd class="shell">i=42;while [ $i -lt 100 ]; do echo $i; i=$(($i + 1)); done &gt;numbers.txt</kbd>
+<kbd class="shell">head numbers.txt</kbd>
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+<kbd class="shell">tail numbers.txt</kbd>
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+<kbd class="shell">./nth_line.pl 1 numbers.txt</kbd>
+42
+<kbd class="shell">./nth_line.pl 20 numbers.txt</kbd>
+61
+<kbd class="shell">./nth_line.pl 1000 numbers.txt</kbd>
+</pre>
+
+
+{{autotest_reminder("nth_line.pl")}}
+
+<p></p>
+<h3>Exercise: Snap N</h3>
+
+Write a Perl program  which reads lines from its input until it
+reads an line that has been entered <i>n</i> times.
+<p>
+Your program should then print "Snap: " followed by the line.
+<p>
+Your program  will be given <i>n</i> as a command  line argument.
+Your program should print nothing if the end-of-input is reached
+before any line is repeated <i>n</i> times.
+<p>
+For example:
+
+{{execute("./snap_n.pl 2", cwd='solutions', show_eof=False, input=
+"""hi
+how
+are
+you
+hi
+"""
+)}}
+
+
+{{execute("./snap_n.pl 2", cwd='solutions', show_eof=False, input=
+"""hi
+hi hi
+hi hi hi
+hi hi hi hi
+hi hi
+"""
+)}}
+
+{{execute("./snap_n.pl 4", cwd='solutions', show_eof=False, input=
+"""Hello World
+Line 2
+Hello World
+Line 3
+Hello World
+Line 4
+Hello World
+"""
+)}}
+
+No error checking is necessary.
+{{autotest_reminder("snap_n.pl")}}
+
+
+<p></p>
+
+{% endblock %}
+</p></p></p></p></p></p></p>

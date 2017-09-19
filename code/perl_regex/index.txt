@@ -1,0 +1,17 @@
+gender_reversal.0.pl
+gender_reversal.1.pl
+gender_reversal.2.pl
+gender_reversal.3.pl
+gender_reversal.4.pl
+gender_reversal.5.pl
+gender_reversal.6.pl
+wget.0.pl
+wget.1.pl
+find_numbers.0.pl
+find_numbers.1.pl
+print_last_number.pl
+count_enrollments.pl
+count_first_names.pl
+duplicate_first_names.pl
+course_first_names.pl
+course_statistics.pl

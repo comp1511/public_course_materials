@@ -1,0 +1,78 @@
+{% extends "templates/tut.html" %}
+{% block questions %}
+<li>
+What is <code>gitlab.cse.unsw.edu.au</code> and why do I want use it?
+<p>
+<p></p>
+<li>
+What (basically)  does <code> git add <i>file</i></code> do?
+
+<p></p>
+<li>
+What (basically)  does <code> git commit -a</code> do?
+
+<p></p>
+<li>
+What (basically)  does <code> git push</code> do?
+
+<p></p>
+<li>
+What is bash arithmetic?  What are its advantages and disadvantages.
+
+<p></p>
+<li>
+
+Discuss what has to be done to transform
+this Python to equivalent Perl.
+
+{{ include_code("solutions/even_odd.py") }}
+
+<p></p>
+<li>
+
+Discuss what has to be done to transform
+the  Python in the previous question to equivalent Shell using test/expr
+for the arithmetic statements.
+
+{{ include_code("solutions/even_odd.py") }}
+
+<p></p>
+<li>
+
+Discuss what has to be done to transform
+the above  Shell using test/expr
+to bash arithmetic
+
+{{ include_code("solutions/even_odd.py") }}
+
+<p></p>
+<li>
+
+We are translating a Python program to Perl
+and we reach this line.
+
+<pre class="program">
+a[x] = y;
+</pre>
+
+what is difficult about translating this line?
+<p>
+What can we do about this?
+
+<p></p>
+<li>
+
+Discuss what  this  Shell script does then translate it directly to Perl
+using Perl's <b>system</b> fucntion.
+<p>
+Then translate it to  Perl than doesn't use <b>system</b>.
+
+{{include_code("solutions/important_file.sh")}}
+
+<p></p>
+
+{% endblock %}
+
+{% block revision_questions %}
+{% endblock %}
+</p></li></p></li></li></li></li></li></li></li></li></p></li>

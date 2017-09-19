@@ -1,0 +1,101 @@
+#!/usr/bin/env python3.5
+
+import glob,os,re,subprocess
+from bs4 import BeautifulSoup
+import config
+
+def extract_file_references_from_jinja(template, include_answers=False):
+	try:
+		with open(template) as f:
+			page = f.read()
+			soup = BeautifulSoup(page, 'html.parser')
+			if not include_answers:
+				for tag in soup.findAll({'div':True,'span':True,'pre':True}, { "class" : re.compile(r'\banswer\b')}):
+					tag.replaceWith(soup.new_tag('p'))
+			all_refs = set()
+			all_refs.update([a['href'] for a in soup.find_all('a', href=True)])
+			all_refs.update([img['src'] for img in soup.find_all('img', src=True)])
+			all_refs.update(re.findall(r'\{\{include_code\("(.*?)"', str(soup)))
+			relative_refs = set()
+			for ref in all_refs: 
+				ref = re.sub(r'^{{.*?}}', '', ref)
+				if not ref.startswith('http') and not ref.startswith('/') and not ref.startswith('/'):
+					relative_refs.add(ref)
+			return relative_refs
+	except FileNotFoundError:
+		return []
+
+private_dir = os.path.join(config.variables['public_html_session_directory'], 'private')
+public_dir = os.path.join(config.variables['public_html_session_directory'], 'public')
+os.chdir(private_dir)
+
+last_commit_message = subprocess.run(['git', 'log', '-1', '--pretty=%B'], stdout=subprocess.PIPE, universal_newlines=True).stdout
+public_prefixes = set("home_computing lec lib scripts static templates code".split())
+
+# FIXME need to be able to make assignments and files in 
+# assignment directories selectively public
+
+
+public_prefixes.add("assignments/pypl")
+
+for path in glob.glob('*.*') + glob.glob('cgi/*.*'):
+	if not os.path.isdir(path):
+		public_prefixes.add(path)
+
+censored_files = set()
+for tlb_path in sorted(glob.glob(os.path.join('tlb', '[0-9][0-9]'))):
+	for tut_or_lab_or_test in ['tut', 'lab', 'test']:
+		path_prefix = os.path.join(tlb_path, tut_or_lab_or_test)
+		file_references = []
+		if os.path.exists(path_prefix+'_answers_released'):
+			public_prefixes.update([path_prefix + '.html', path_prefix + '.autotest', path_prefix + '.automarking'])
+			file_references = extract_file_references_from_jinja(path_prefix + '.html', include_answers=True)
+		elif os.path.exists(path_prefix + '_questions_released'):
+			censored_files.add(path_prefix + '.html')
+			public_prefixes.add(path_prefix + '.autotest')
+			file_references = extract_file_references_from_jinja(path_prefix + '.html')
+		public_prefixes.update([os.path.join(tlb_path, fr) for fr in file_references])
+	public_prefixes.update(glob.glob(os.path.join(tlb_path, '*released')))
+#	if glob.glob(os.path.join(tlb_path, '*released')):
+#		for path in glob.glob(os.path.join(tlb_path, '*')):
+#			if not os.path.isdir(path) and not path.endswith('.html'):
+#				public_prefixes.add(path)
+
+p = subprocess.run(['git','ls-tree', '-r', 'master', '--name-only'], stdout=subprocess.PIPE, universal_newlines=True)
+public_files = set()
+for pathname in p.stdout.splitlines():
+	for prefix in public_prefixes:
+		if pathname.startswith(prefix):
+			public_files.add(pathname)
+			break
+			
+subprocess.run(['rsync', '-a', '--chmod=Du=rwx,Dgo=rx,Fu=rwX,Fgo=rX', '--files-from=-', '.', public_dir], input='\n'.join(public_files).encode('utf-8'))
+
+for censored_file in censored_files:
+	with open(censored_file) as f:
+		soup = BeautifulSoup(f.read(), 'html.parser')
+		for tag in soup.findAll({'div':True,'span':True,'pre':True}, { "class" : re.compile(r'\banswer\b')}):
+			tag.replaceWith(soup.new_tag('p'))
+	with open(os.path.join(public_dir, censored_file),"w") as f:
+		f.write(str(soup))
+		
+public_files.update(censored_files)
+
+os.chdir(public_dir)
+assert(os.path.isdir('.git'))
+
+p = subprocess.run(['git','ls-tree', '-r', 'master', '--name-only'], stdout=subprocess.PIPE, universal_newlines=True)
+old_public_files = set()
+for pathname in p.stdout.splitlines():
+	if pathname not in public_files:
+		try:
+			os.unlink(pathname)
+		except FileNotFoundError:
+			pass
+	else:
+		old_public_files.add(pathname)
+		
+for pathname in public_files - old_public_files:
+	subprocess.run(['git', 'add', pathname])
+subprocess.run(['git', 'commit', '-a', '-m', last_commit_message])
+subprocess.run(['git', 'push', '-u', 'origin', 'master'])

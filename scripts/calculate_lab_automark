@@ -1,0 +1,157 @@
+#!/usr/bin/python3
+
+import json, glob, os, re, subprocess, sys
+from collections import defaultdict
+import config
+
+def piece_wise_linear(x, mapping):
+	if isinstance(mapping, dict):
+		mapping = mapping.items()
+	mapping = sorted(mapping)
+	x0, mapped_x0 = mapping.pop(0)
+	if x < x0:
+		return mapped_x0
+	while mapping:
+		x1, mapped_x1 = mapping.pop(0)
+		if x <= x1:
+			return mapped_x0 + (x - x0)/(x1 - x0) * (mapped_x1 - mapped_x0)
+		x0, mapped_x0 = x1, mapped_x1
+	return mapped_x0
+
+def get_test_results(exercise, automarking_results_file):
+	label_groups = get_test_label_groups(exercise)
+	#print('label_groups:',label_groups)
+	test_results = defaultdict(lambda:{})
+	last_test_group = None
+	try:
+		with open(automarking_results_file) as f:
+			for line in f:
+				m = re.match(r'^Test (\S+) \(.*?\) - +(passed|failed|could not be run)', line)
+				if m:
+					(test_label, test_result) = m.groups()
+					if test_label in label_groups:
+						test_group = ','.join(label_groups[test_label])
+						if 'challenge' in test_label:
+							test_group = 'challenge_' + test_group
+					else:
+						re.sub(r'[^a-zA-Z]+$', '', test_label) # shouldn't happen
+					#print(test_group, test_label, test_result)
+					test_results[test_group][test_label] = test_result
+					if last_test_group != test_group:
+						last_test_group = test_group
+						print()
+				if re.match(r'^\d+ tests passed ', line):
+					print('\n*** Automarking summary: ', end='')
+				print(line, end='')
+	except IOError:
+		print('NO AUTOMARKING RESULTS')
+	return test_results
+
+grade2mark = {'A' : 1, 'B' : 0.8, 'C' : 0.6, 'D' : 0.5, 'E' : 0.4};
+
+# Yuk - fix me
+def	add_peer_assessments(exercise, zid, test_results):
+	dir = os.path.join(config.variables['public_html_session_directory'], 'cgi', 'peer', 'assessments')
+	if exercise == 'lab04':
+		test_group = 'email_image.sh'
+		test_label = 'email_image_peer_assessment'
+		assessments = glob.glob(os.path.join(dir, '*', zid + ".q01"))
+		mark = 0
+		if assessments:
+			try:
+				with open(assessments[0]) as f:
+					grade = f.read().strip()
+					mark = grade2mark.get(grade, 0)
+			except IOError:
+				print("can not read", file=sys.stderr)
+		if mark:
+			print('\n*** Test', test_label, '- peer assessed grade: ', grade)
+		else:
+			print('\n*** Test', test_label, '- no peer assessment')
+		test_results[test_group][test_label] = mark
+		test_group = 'date_image.sh'
+		test_label = 'date_image_peer_assessment'
+		assessments = glob.glob(os.path.join(dir, '*', zid + ".q02"))
+		mark = 0
+		if assessments:
+			try:
+				with open(assessments[0]) as f:
+					grade = f.read().strip()
+					mark = grade2mark.get(grade, 0)
+			except IOError:
+				print("can not read", file=sys.stderr)
+		if mark:
+			print('\n*** Test', test_group, '- peer assessed grade: ', grade)
+		else:
+			print('\n*** Test', test_group, '- no peer assessment')
+		test_results[test_group][test_label] = mark
+		
+def calculate_mark(test_results):
+	passed_fraction = 0
+	n_non_challenge_test_groups_attempted = 0
+	
+	for test_group in test_results:
+		test_group_results = list(test_results[test_group].values())
+		try:
+			n_passed = sum(test_group_results) # peer_assesments already reduced to mark
+		except (TypeError,ValueError):
+			n_passed = test_group_results.count('passed') # all others
+		passed_fraction += n_passed / len(test_group_results)
+		#print(test_group, n_passed / len(test_group_results))
+		if 'challenge' not in test_group and (n_passed or 'failed' in test_group_results):
+			n_non_challenge_test_groups_attempted += 1
+		
+	n_test_groups = len(test_results)
+	passed_fraction /= n_test_groups
+	n_non_challenge_test_groups = len([t for t in test_results if 'challenge' not in t])
+	non_challenge_test_group_fraction = n_non_challenge_test_groups/n_test_groups
+	
+	min_mark = 0.4 * n_non_challenge_test_groups_attempted/n_non_challenge_test_groups
+	
+	if non_challenge_test_group_fraction >= 0.8:
+		mark = passed_fraction
+	else:
+		mark = piece_wise_linear(passed_fraction, {
+			0 : 0,
+			n_non_challenge_test_groups/n_test_groups : 0.8,
+			1 : 1
+		})
+#	print('min_mark',min_mark, 'mark', mark, 'test_results', test_results, file=sys.stderr)
+	return max(0.1, min_mark, mark)
+	
+def get_test_label_groups(exercise):
+	try:
+		command = ['autotest', exercise, '--print_test_names', '--marking']
+		stdout = subprocess.check_output(command,universal_newlines=True)
+		test_group_json = json.loads(stdout)
+	except subprocess.CalledProcessError:
+		print('Error command failed:', command, file=sys.stderr)
+		return {}
+	label_group = {}
+	for j in test_group_json:
+		for label in j['labels']:
+			label_group[label] = tuple(j['files'])
+	return label_group
+
+def main():
+	tar_pathname = sys.argv[1]
+	if not tar_pathname.startswith('/'):
+		tar_pathname = os.path.realpath(tar_pathname)
+	submission_dir = os.path.dirname(tar_pathname)
+	zid = os.path.basename(submission_dir)
+	tut_dir = os.path.dirname(submission_dir)
+	exercises_dir = os.path.dirname(tut_dir)
+	exercise = os.path.basename(exercises_dir)
+	automarking_results_file = os.path.join(exercises_dir, 'automarking_results', zid)
+	test_results = get_test_results(exercise, automarking_results_file)
+	add_peer_assessments(exercise, zid, test_results)
+	mark = "%.1f" % calculate_mark(test_results)
+	with open('tmp.total', 'w') as f:
+		print(mark, file=f)
+	print("\nYour performance mark is produced from the number of tests passed using a piece-wise linear formula.")	 
+	print("\nYou can rerun the tests used in marking with autotest's --marking option:")	 
+	print("{} autotest --marking {}\n".format(config.variables['course_number'], exercise))	 
+
+if __name__ == '__main__':
+	main()
+	sys.exit(0)

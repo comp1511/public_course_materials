@@ -1,0 +1,85 @@
+#!/usr/bin/python3
+
+import glob, json, os, re, subprocess, sys
+from collections import defaultdict,OrderedDict
+import config
+
+debug = int(os.environ.get('DEBUG', 0))
+summary = defaultdict(lambda:defaultdict(lambda:OrderedDict()))
+for exercise_dir in sorted(glob.glob(os.path.join(os.environ['WORK'], '*', 'auto*_results'))):
+	exercise = os.path.basename(os.path.dirname(exercise_dir))
+	automarking = os.path.basename(exercise_dir) == 'automarking_results'
+	try:
+		command = ['autotest', exercise, '--print_test_names']
+		if automarking:
+			command = ['autotest', exercise, '--print_test_names', '--marking']
+		stdout = subprocess.check_output(command,universal_newlines=True)
+		if debug > 1:
+			print(command, '\n', stdout, file=sys.stderr)
+		test_group_json = json.loads(stdout)
+	except subprocess.CalledProcessError:
+		continue
+	test_group_list = [(tuple(j['files']), j['labels']) for j in test_group_json]
+	test_tallies = defaultdict(lambda:defaultdict(lambda:0))
+	test_group_tallies = defaultdict(lambda:defaultdict(lambda:0))
+	for zid in os.listdir(exercise_dir):
+		if not re.match(r'^\d{7}$', zid) :
+			continue
+		test_result = {}
+		if automarking:
+			with open(os.path.join(exercise_dir, zid)) as f:
+				for line in f:
+					m = re.match(r'^Test (\S+) \(.*?\) - +(passed|failed|could not be run)', line)
+					if m:
+						(label, result) = m.groups()
+						if result not in ['passed', 'failed']:
+							result = 'not_attempted'
+						test_tallies[label][result] += 1
+						test_result[label] = result
+		else:
+			for file in glob.glob(os.path.join(exercise_dir, zid, '*.passed')):
+				label = os.path.basename(os.path.splitext(file)[0])
+				result = "passed" if os.path.getsize(file) > 0 else "failed"
+				test_tallies[label][result] += 1
+				test_result[label] = result
+		for (files,labels) in test_group_list:
+			for label in labels:
+				if label not in test_result:
+					#automarkingprint('not_attempted', exercise_dir+'/'+zid, label)
+					test_tallies[label]['not_attempted'] += 1
+					test_result[label] = 'not_attempted'
+			test_group_results = [test_result[label] for label in labels]
+			#print(files, test_group_results)
+			if test_group_results.count('passed') == len(test_group_results):
+				result = 'passed'
+			elif test_group_results.count('not_attempted') == len(test_group_results):
+				result = 'not_attempted'
+			else:
+				result = 'failed'
+			test_group_tallies[files][result] += 1
+	for (files,labels) in test_group_list:
+		individual_tests = {}
+		for label in labels:
+			individual_tests[label] = a ={
+				'passed' : test_tallies[label]['passed'],
+				'failed' : test_tallies[label]['failed'],
+				'not_attempted' : test_tallies[label]['not_attempted']}
+			if debug:
+				print('	 ', label,	a['passed'], a['failed'], a['not_attempted'], file=sys.stderr)
+		key = ' '.join(files)
+		summary[exercise]['automarking' if automarking else 'autotest'][key] = a = {
+			'files' : files,
+			'passed' : test_group_tallies[files]['passed'],
+			'failed': test_group_tallies[files]['failed'],
+			'not_attempted' : test_group_tallies[label]['not_attempted'],
+			'individual_tests' : individual_tests}
+		if debug:
+			print(exercise, key, automarking, a['passed'], a['failed'], a['not_attempted'], file=sys.stderr)
+			
+autotest_file = config.variables['testing_results_file']
+autotest_file_tmp_file = autotest_file + '.' + str(os.getpid())
+with open(autotest_file_tmp_file, 'w') as f:
+	json.dump(summary, f)
+	f.flush()
+	os.fsync(f.fileno())
+os.rename(autotest_file_tmp_file, autotest_file)

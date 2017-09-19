@@ -1,0 +1,54 @@
+{% extends "templates/base.html" %}
+
+{% block heading_title %}
+pypl Subset Examples
+{% endblock %}
+
+{% block body_contents %}
+<style type="text/css">
+h2 {
+    background-color: #FFF8A0;
+    margin-left: -0.5em
+    margin-right: -0.5em;
+    padding: .4em;
+    border-radius:10px;
+    text-align:center;
+}
+</style>
+
+{% for subset_dir in sorted(glob.glob(os.path.join(directory_absolute_pathname, 'examples', '[0-9]'))) %}
+    {% set subset = os.path.basename(subset_dir) %}
+    <a name="subset{{subset}}"></a>
+    <h2 class="section_heading">pypl Subset {{subset}} Examples</h2>
+    {% for python_full_pathname in glob.glob(os.path.join(subset_dir, '*.py')) %}
+        {% set perl_full_pathname = re.sub('py$', 'pl', python_full_pathname) %}
+        {% set python_relative_pathname = os.path.join('examples', subset, os.path.basename(python_full_pathname)) %}
+        {% set perl_relative_pathname = os.path.join('examples', subset, os.path.basename(perl_full_pathname)) %}
+        <p>
+        <hr>
+    <div class="multicolumn_block">
+        <div class="two_column_block">
+
+            <div class="code_link">
+                <a target="source" href="{{url_root}}assignments/pypl/{{python_relative_pathname}}">{{python_relative_pathname}}</a>
+            </div>
+
+            {{ include_code(python_relative_pathname) }}
+
+        </div>
+
+        <div class="two_column_block">
+            <div class="code_link">
+                <a target="source" href="{{url_root}}assignments/pypl/{{perl_relative_pathname}}">{{perl_relative_pathname}}</a>
+            </div>
+
+            {{ include_code(perl_relative_pathname) }}
+
+        </div>
+        <div style="clear:both;"></div>
+    </div>
+    {% endfor %}
+{% endfor %}
+<h2>Download</h2>
+<a href="examples.zip"><b>zip file of all examples</b></a>
+{% endblock %}

@@ -1,0 +1,84 @@
+#!/bin/bash -p
+#set -x
+. $(dirname $(readlink -f $0))/config.sh
+
+tarfile="$1"
+submission_dir=$(dirname "$tarfile")
+zid=$(basename "$submission_dir")
+test "$zid" = andrewt && "$zid" = '9300162'
+tutorial_dir=$(dirname "$submission_dir")
+exercise_dir=$(dirname "$tutorial_dir")
+exercise=$(basename "$exercise_dir")
+cd "$submission_dir"  || exit 1
+
+if cd repo 2>/dev/null
+then
+	:
+else
+	mkdir repo || exit 1
+	cd repo || exit 1
+fi
+chmod 750 .
+
+
+if test ! -e .gitignore
+then
+	rm -rf .git
+	git init -q --shared=group . || exit 1
+	git config user.email "z$zid@unsw.edu.au"
+	git config user.name "`/usr/bin/acc 'format=$name' z$zid`"
+	cat >.gitignore <<eof
+*.tar
+*.tar.*
+*.zip
+.git*
+*.pbm
+eof
+fi
+
+if test ! -e README.md
+then
+	cat >README.md <<eof
+Don't push changes to this repository directly.
+
+Don't change the repository via the web interface
+
+Submit your work using give, and it will be automatically pushed to this repository.
+eof
+fi
+
+tar xf "$tarfile" --exclude='.git*'
+git add . && git commit -q --allow-empty -a -m "give on `date`"
+
+project_name="$unsw_session-$course_code_lower_case-$exercise"
+gitlab_path="gitlab@gitlab.cse.unsw.EDU.AU:z$zid/$project_name"
+
+if git push "$gitlab_path" master  --quiet 2>/dev/null
+then
+	push_worked=1
+else
+	$scripts_directory/gitlab_create_project $project_name z$zid
+	if git push "$gitlab_path" master --quiet >/dev/null 2>&1
+	then
+		push_worked=1
+	else
+		git pull -s recursive -X ours --no-edit  "$gitlab_path"  >/dev/null 2>&1
+		git push "$gitlab_path" master --quiet && push_worked=1
+	fi
+fi
+
+test -n "$push_worked" || exit
+
+hash=`git rev-parse HEAD`
+gitlab_url="https://gitlab.cse.unsw.edu.au/z$zid/$project_name"
+
+cat <<eof
+
+You can view or download the files you have submitted at this URL:
+$gitlab_url/tree/$hash
+after logging in with your zpass/zid
+
+You can view or download all previous submissions at this URL:
+$gitlab_url/commits/master
+
+eof

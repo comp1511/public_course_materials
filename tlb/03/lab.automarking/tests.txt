@@ -1,0 +1,44 @@
+ignore_white_space=1
+max_cpu=3
+max_wall_clock=30
+program=counting_classes.txt
+shell=True
+label=counting_classes_q1 command="grep '^Q1 answer' counting_classes.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=counting_classes_q2 command="grep '^Q2 answer' counting_classes.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=counting_classes_q3 command="grep '^Q3 answer' counting_classes.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=counting_classes_q4 command="grep '^Q4 answer' counting_classes.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=counting_classes_q5 command="grep '^Q5 answer' counting_classes.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=counting_classes_q6 command="grep '^Q6 answer' counting_classes.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+ignore_white_space=
+
+program=digits.sh
+command=digits.sh
+digits_1 stdin="9 234 5 678 1\n"
+digits_2 stdin="I can think of 100's\nof other things I'd rather\nbe doing than these 9 questions\n42\n"
+digits_3 stdin="A line with lots of numbers:\n123456789123423456789\nA line with all zeroes\n000000000000000000000000\nA line with blanks at the end\n1 2 5\n"
+digits_4 stdin="Input with absolutely 0 digits in it\nWell ... apart from that one ...\n"
+digits_5 stdin="1 2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65536 131072\n"
+
+program=echon.sh
+echon_1	command=echon.sh 9 world
+echon_3	command=echon.sh 1 bye
+echon_4	command=echon.sh 24 answer
+ignore_white_space=1
+echon_5	command="echon.sh 2>&1" shell=True
+echon_6	command="echon.sh 1 2 9 2>&1" shell=True
+echon_7	command="echon.sh hhello wworld 2>&1" shell=True
+echon_8	command="echon.sh -24 lines 2>&1" shell=True
+
+max_cpu=10
+file_size_1	program=file_sizes.sh command="cd data_dir;../file_sizes.sh" shell=True
+file_size_2	program=file_sizes.sh command="cd data_dir1;../file_sizes.sh" shell=True
+
+ignore_white_space=
+max_cpu=10
+max_wall_clock=60
+program=courses.sh
+challenge_courses_1 command=courses.sh JAPN
+challenge_courses_2 command=courses.sh SENG
+challenge_courses_3 command=courses.sh BINF
+challenge_courses_4 command=courses.sh SOLA
+challenge_courses_5 command=courses.sh ELEC

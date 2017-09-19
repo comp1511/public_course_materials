@@ -1,0 +1,116 @@
+#!/usr/bin/perl -w
+
+# BADLY needs to be rewritten - inefficient crude & hangs
+
+$debug = 1 if $ENV{DEBUG};
+delete $ENV{CDPATH};
+$full_pathname = `readlink -f $0`;
+$full_pathname =~ s?^/tmp_amd/\w+/export/\w+/[0-9]/?/home/?;
+chomp $full_pathname;
+$dir = $full_pathname;
+$dir =~ s/[^\/]*$//;
+@machines = ();
+$max_forked_processes = $ENV{MAX_FORKED_PROCESSES} || 0;
+$ping = "/bin/ping -c 1 -q ";
+$ping_success = '1\s*(packets)?\s*received';
+$ssh = "ssh -x -oStrictHostKeyChecking=no -oForwardX11=no -oForwardX11Trusted=no -oForwardAgent=no";
+if (@ARGV && $ARGV[0] eq "-p") {
+    @machines = (piano00..piano17,organ00..organ19,clavier00..clavier20,viola00..viola17,cello00..cello17,bugle00..bugle17,horn00..horn16,sitar00..sitar24,kora00..kora23,flute00..flute24,oboe00..oboe24,drum00..drum23,bongo00..drum19,lyre01..lyre18,oud00..oud18);
+    @machines = (piano00..piano17,organ00..organ19,clavier00..clavier20,viola00..viola17,cello00..cello17,bugle00..bugle17,horn00..horn16,sitar00..sitar24,kora00..kora23,flute00..flute24,oboe00..oboe24,drum00..drum20,bongo00..drum19,lyre01..lyre17,oud00..oud18);
+    shift @ARGV;
+    $max_forked_processes = $ENV{MAX_FORKED_PROCESSES} || 32;
+}
+$assignment = shift @ARGV or die "Usage $0 <assignment>\n";
+
+($class) = $dir =~ /\/(cs\d\d\d\d)\// or die "Can't determine class";
+($session) = $dir =~ /\/(\d\d[sx][12])/ or die "Can't determine session";
+
+$work_dir = "/home/$class/$session.work/$assignment";
+#chdir $work_dir or exit 1;
+$results_dir = "$work_dir/automarking_results";
+-d $results_dir or mkdir $results_dir and print "Creating  $results_dir\n";
+
+$ENV{TEST_COMPILERS} ||= '';
+$ENV{TESTFILE_DIR} ||= '';
+
+while (1) {
+	print STDERR "work_dir=$work_dir\n" if $debug;
+	open F, "ls -d $work_dir/*/*/submission.tar 2>/dev/null|sort -t/ -k6rn|" or die "Can not run find: $!";
+	my $forked = 0;
+	my $n_marked;
+	while ($submission = <F>) {
+	    if (!$max_forked_processes || fork == 0) {
+	        chomp $submission;
+	        my $student = $submission;
+	        $student =~ s/.submission\.tar//;
+	        $student =~ s?.*/??;
+	        my $submission_dir = $submission;
+	        $submission_dir =~ s/[^\/]*$//;
+	        my $output = "$results_dir/$student";
+	        my $test_needed = 0;
+            if (-s  $output) {
+            	if (!-d "$submission_dir/.submissions") {
+	                for $file (glob("$submission_dir/*.*"), $submission) {
+	                    next if $file eq "log";
+	                    $test_needed ||= -e $file && -M $file < -M $output;
+	                }
+                }
+            } else {
+                $test_needed = 1;
+            }
+	        if (!$test_needed) {
+	            print STDERR "$student already done\n" if $debug;
+	            next if !$max_forked_processes;
+	            exit 0;
+	        } elsif ($debug) {
+	            system "ls -l $output $submission_dir/*";
+	        }
+	        $n_marked++;
+	#       $test_needed ||= -M "../tests.spec" < -M $output  if -r "../tests.spec" ;
+	        #   print STDERR "student=$student submission=$submission test_needed=$test_needed\n";
+	        my $prefix = "";
+	        if (@machines) {
+	            my $machine;
+	            while (1) {
+	                $machine = $machines[rand @machines];
+	                print STDERR "$ping $machine|\n"  if $debug;
+	                open PING, "$ping $machine|";
+	                my @input = <PING>;
+	                close PING;
+	                print STDERR "@input\n"  if $debug;
+	                print STDERR (grep /$ping_success/, @input), "\n" if $debug;
+	                next if !grep /$ping_success/, @input;
+	                $uptime=`$ssh $machine uptime`;
+	                print STDERR "$machine: $uptime\n" if $debug;
+	                last if $uptime =~ /load average: (0.\d+)/ and $1 < 0.1;
+	                print STDERR "$machine busy\n" if $debug;;
+	            }
+	            $prefix = "$ssh $machine ";
+	        }
+	        print "$prefix $dir/automark_student $submission >$output.$$ 2>&1 && mv $output.$$ $output\n" if $debug;
+	        system "$prefix $dir/automark_student $submission >$output.$$ 2>&1 && mv $output.$$ $output";
+	        my $signal_num  = $? & 127;
+	        if ($signal_num == 2) {
+	            print "\n$0: interrupted\n";
+	            exit $?;
+	        }
+	        
+	        my $info = "$output ".`egrep -ha 'All tests|tests failed'  $output|sed 's/^[* ]*//'`." $submission_dir ".join(" ", glob("$work_dir/separated/*$student*.[pch]*"));
+	        $info =~ s/\n//g;
+	        print "$info\n";
+	        next if !$max_forked_processes;
+	        exit 0;
+	    }
+	    $n_forked_processes++;
+	    while ($n_forked_processes > $max_forked_processes ) {
+	        my $pid = wait;
+	        if ($pid == -1) {
+	            $n_forked_processes = 0;
+	            last;
+	        }
+	        $n_forked_processes--;
+	    }
+	}
+	while (wait != -1) {}
+	last if !$n_marked;
+}

@@ -1,0 +1,505 @@
+\input{include.tex}
+\begin{document}
+\section{COMP[29]041 Introduction 17s2}
+\begin{frame}
+~
+\frametitle{COMP[29]041 - Software Construction 17s2}
+
+
+\begin{center}
+Lecturer/Admin: ~ Andrew Taylor, ~ {\small andrewt{\makeatletter@\makeatother}cse.unsw.edu.au} \\
+
+
+~ http://www.cse.unsw.edu.au/{\textasciitilde}cs2041/
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Course Goals}
+Overview: to expand your knowledge of programming.
+
+First year deals with ...
+\begin{itemize}
+\item  some aspects of programming {\small (e.g. basics, correctness)}
+\item  on relatively small tightly-specified examples
+\end{itemize}
+COMP[29]041 deals with ...
+\begin{itemize}
+\item  other aspects of programming {\small (e.g. testing, performance)}
+\item  using a wider range of tools {\small (e.g. filters, Perl)}
+\item  on larger (less small) less specified examples
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Course Goals}
+Introduce you to:
+\begin{itemize}
+\item  building software systems from components
+\item  treating software as an object of experimental study
+\end{itemize}
+Develop skills in:
+\begin{itemize}
+\item  using software development tools {\small (e.g.  make, gprof, svn)}
+\item  building reliable, efficient, maintainable, portable software
+\end{itemize}
+{\small 
+Ultimately: get you to the point where you could build some
+software, put it on sourceforge/google code/github, have people use it and have
+it rated well.
+}
+\end{frame}
+
+\begin{frame}
+\frametitle{Inputs}
+At the start of this course you should be able to:
+\begin{itemize}
+\item  produce a correct procedural program from a spec
+\item  understand fundamental data structures + algorithms \\
+	{\small (char, int, float, array, struct, pointers, sorting, searching)}
+\item  appreciate the use of abstraction in computing
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Outputs}
+At the end of this course you should be able to:
+\begin{itemize}
+\item  understand the capabilities of many programming tools
+\item  choose an appropriate tool to solve a given problem
+\item  apply that tool to develop a software solution
+\item  use appropriate tools to assist in the development 
+\item  show that your solution is reliable, efficient, portable
+\end{itemize}
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{Syllabus Overview}
+\begin{enumerate}
+\item  Qualities of software systems
+{\small 
+\begin{itemize}
+\item  Correctness, clarity, reliability, efficiency, portability, ...
+\end{itemize}
+}
+\item  Techniques for software construction
+{\small 
+\begin{itemize}
+\item  Analysis, design, coding, testing, debugging, tuning
+\item  Interface design, documentation, configuration
+\end{itemize}
+}
+\item  Tools for software construction
+{\small 
+\begin{itemize}
+\item  Filters ~ ({\em{grep, sed, cut, sort, uniq, tr,}}...)
+\item  Scripting languages ~ ( {\em{shell}}, {\em{Perl}}, some Python)
+\item  Intro to Programming for the we
+\item  Analysis/configuration/documentation tools ~ (git, gprof, make, ...)
+\end{itemize}
+}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\frametitle{Lectures}
+Lectures will:
+\begin{itemize}
+\item  present a brief overview of theory
+\item  give practical demonstrations of tools
+\item  demonstrate problem-solving methods
+\end{itemize}
+Lecture notes available on the Web before each lecture.
+
+Feel free to ask questions, but otherwise {\em{Keep Quiet}}.
+\end{frame}
+
+\begin{frame}
+\frametitle{Tutorials}
+Tutorials aim to:
+\begin{itemize}
+\item  clarify any problems with lecture material
+\item  work through problems related to lecture topics
+\item  give practice with design skills ~ {\small {\em{(think before coding)}}}
+\end{itemize}
+
+Tutorials start in week 2.
+
+Tutorial questions available on the web the week before.
+
+Tutorial answers available on the web after the week's last tutorial.
+
+Use tutorials to discuss {\em{how}} solutions were reached.
+\end{frame}
+
+\begin{frame}
+\frametitle{Tutorials}
+
+To get the best out of tutorials
+
+\begin{itemize}
+\item  attempt the problems yourself
+\item  if you understand OK and get feasible answer, fine
+\end{itemize}
+
+Ask your tutor if ...
+
+\begin{itemize}
+\item  if you aren't sure your answer is feasible/correct
+\item  if you don't know {\em{how}} the solution was reached
+\item  if you don't understand a question or how to solve it
+\end{itemize}
+
+Do {\em{not}} keep quiet in tutorials ... talk, discuss, ...
+
+Your tutor may ask for your attempt to start a discussion.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Lab Classes}
+Each tutorial is followed by a two-hour lab class.
+
+Lab exercises aim to build skills that will help you to
+
+\begin{itemize}
+\item  complete the assignments
+\item  pass the final exam
+\end{itemize}
+
+Lab classes give you experience applying tools/techniques.
+
+Each lab exercise is a small implementation/analysis task.
+
+Labs often includes challenge exercise(s)
+
+{\em{Do them yourself!}} 
+\end{frame}
+
+\begin{frame}
+\frametitle{Lab Classes}
+Lab exercises contribute 9\% to overall mark.
+
+In order to get a marks most lab exercises:
+
+\begin{itemize}
+\item submitted via \textbf{\tt{give}} before Sunday midnight
+\item automarked (partial marks if fails autotests)
+\item tutors will give feedback separately
+\end{itemize}
+
+Some lab exercises must be completed and/or assessed during lab class.
+
+Most labs will contain challenge exercises.
+
+More marks available for lab exercises than needed for full marks for lab component.
+
+Can miss 1 week and some challenge exercises and still get full marks.
+
+Any submission of work not your own - zero for lab component.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Lab Exemption}
+COMP9041 students can apply for lab exemption if they have:
+
+\begin{itemize}
+\item  full-time work or other commitments
+\item  previous  programming, particularly scripting, experience
+\item  good marks (70+) in previous courses
+\end{itemize}
+
+If granted - final mark calculated without lab component.
+
+Strongly recommended they still  complete labs.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Weekly Programming Tests}
+Programming tests in weeks 5-12 contribute 6\% to overall mark.
+
+Immediate reality-check on your progress.
+
+Done in your own time under self-enforced exam conditions.
+
+Each test specifies conditions, typically:
+
+\begin{itemize}
+\item No assistance from any person.
+\item Time limit of 1 hour
+\item No access to materials (written or online) \\
+except language documentation or man pages.
+
+\item  automarked:
+
+\begin{itemize}
+\item 100\% passes all autotests
+\item 75\% passes most autotests (single bug)
+\item 50\% otherwise
+\end{itemize}
+\item  best 6 of 8 tests used to calculate the 6%
+\item  any violation of the test conditions, zero for whole component
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Assignments}
+Assignments give you experience applying tools/techniques \\
+{\small (but to larger programming problems than the lab exercises)}
+
+Assignments will be carried out individually.
+
+They always take longer than you expect.
+
+Don't leave them to the last minute.
+
+There are late penalties applied to maximum assignment marks,
+typically:
+\begin{itemize}
+\item  2\%/hour
+\end{itemize}
+Organising your time $\Rightarrow$ no penalty.
+\end{frame}
+
+\begin{frame}
+\frametitle{Plagiarism}
+Labs and Assignments must be entirely your own work.
+
+No group work in this course.
+
+{\em{{\bf{Plagiarism}}}} = {\small submitting someone else's work as your own.}
+
+Plagiarism will be checked for and {\em{penalized}}.
+
+Plagiarism may result in suspension from UNSW .
+
+International students may lose their visa.
+
+Supplying your work to any another person  may result in 
+loss of all your marks for the lab/assignment.
+
+Assignments may allow use of code snippets ($<$ 10 lines)
+with {\bf attribution}
+
+For example, can use 3 lines of code from Stack Overflow if clear you are not author
+\end{frame}
+
+\begin{frame}
+\frametitle{Final Exam}
+3-hour closed-book exam during the exam period.
+
+The exam contributes 55\% to total mark for the course.
+
+Some multiple-choice/short answer questions - similar to  tut questions.
+
+Six (probably) implementation questions  - similar to lab exercises.
+
+COMP[29]041 hurdle requirement:
+
+\begin{itemize}
+\item you must successfully complete two implementation questions
+\end{itemize}
+
+A question still regarded as complete if it contains a minor bug.
+
+You can not pass COMP[29]041 unless you meet the hurdle.
+
+If you fail to meet  hurdle and get 50+, you receive a UF grade.
+\end{frame}
+
+\begin{frame}
+\frametitle{Final Exam}
+Format:
+Held in the CSE Labs ~ {\small (must know lab environment)}
+
+\begin{itemize}
+\item  limited on-line language documentation available
+\item  we give you  programming task
+\item  most tasks you choose the language from (sh,perl,python,C) \\
+a task might specify particular language
+\item  similar in style/difficulty to labs
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Supplementary Exams}
+Supplementary exam for students who miss the exam due a serious documented reason (e.g illness)
+
+Supplementary exam also offered to students:
+\begin{itemize}
+\item final mark 40+
+\item attended 9+ tutorials
+\item attempted 9+ labs
+\item attempted 6+ quizes
+\item attempted both assignments (achieving 50+%)
+\end{itemize}
+
+If you are close to passing and have been taking the course seriously,
+we'll give you a second chance.
+
+Includes students who don't meet hurdle requirement on final exam.
+
+Supplementary exam tentatively scheduled for  Dec 6 
+
+You responsibility to be in Sydney around that date and available.
+\end{frame}
+
+
+\begin{frame}
+\frametitle{How to Pass this Course}
+Coding is a {\em{skill}} that improves with practice.
+
+The more you practise, the easier you will find assignments/exams.
+
+Don't restrict practice to lab times and two days before assignments due.
+
+It also helps to pay attention in lectures and tutorials.
+\end{frame}
+
+\begin{frame}
+\frametitle{Reading Material}
+{\bf{General References:}}
+\begin{itemize}
+\item  {\em{Kernighan \& Pike}},
+	The Practice of Programming,
+	\\{\small Addison-Wesley, 1998.
+	\\(Inspiration for 2041 - philosophy and some tool details)}
+\item  {\em{McConnell}},
+	Code Complete (2ed),
+	\\{\small Microsoft Press, 2004.
+	\\(Many interesting case studies and practical ideas)}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{Reading Material}
+{\bf{Perl Reference Books:}}
+\begin{itemize}
+\item  {\em{Wall, Christiansen \& Orwant }},
+	Programming Perl (3ed),
+	\\{\small O'Reilly, 2000.
+		~ (Original \& best Perl reference manual)}
+\item  {\em{Schwartz, Phoenix \& Foy}},
+	Learning Perl (5ed),
+	\\{\small O'Reilly, 2008.
+		~ (gentle \&  careful introduction to Perl)}
+\item  {\em{Christiansen \& Torkington}},
+	Perl Cookbook (2ed),
+	\\{\small O'Reilly, 2003.
+		~ (Lots and lots of interesting Perl examples)}
+\item  {\em{Schwartz \& Phoenix}},
+	Learning Perl Objects, References, and Modules (2ed),
+	\\{\small O'Reilly, 2003.
+		~ (gentle \&  careful introduction to parts of Perl mostly  not covered in this course)}
+\item  {\em{Schwartz, Phoenix \& Foy}},
+	Intermediate Perl  (2ed),
+	\\{\small O'Reilly, 2008.
+		~ (good book to read after 2041 - starts where this course finishes)}
+\item  {\em{Sebesta}},
+	A Little Book on Perl,
+	\\{\small Prentice Hall, 1999.
+		~ (Modern, concise introduction to Perl)}
+\item  {\em{Orwant, Hietaniemi, MacDonald}},
+	Mastering Algorithms with Perl,
+	\\{\small O'Reilly, 1999.
+		~ (Algorithms and data structures via Perl)}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Reading Material}
+{\bf{Shell Programming:}}
+\begin{itemize}
+\item  {\em{Kochgan \& Wood 2003}},
+	Unix® Shell Programming,
+	\\{\small Sams Publishing 2003
+		~ (Careful intoduction to Shell Programming)} 
+\item  {\em{Peek, O'Reilly, Loukides}},
+	Bash Cookbook,
+	\\{\small O'Reilly, 2007.
+		~ (Recipe(example) based intro to Shell programming)}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Reading Material}
+{\bf{Unix Tools Reference Books:}}
+\begin{itemize}
+\item  {\em{Powers, Peek, O'Reilly, Loukides}},
+	Unix Power Tools (3ed),
+	\\{\small O'Reilly, 2003.
+		~ (Comprehensive guide to common Unix tools)}
+\item  {\em{Loukides \& Oram}},
+	Programming with GNU Software,
+	\\{\small O'Reilly, 1997.
+		~ (Tutorial on the GNU programming tools (gcc,gdb,...))} 
+\item  {\em{Robbins}},
+	Unix in a Nutshell (4ed),
+	\\{\small O'Reilly, 2006.
+		~ (Concise guide to Unix and its toolset)}
+\item  {\em{Kernighan \& Pike}},
+	The Unix Programming Environment,
+	\\{\small Prentice Hall, 1984.
+		~ (Pre-cursor to the textbook, intro to Unix tools)}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Reading Material}
+All tools in the course have extensive on-line documentation.
+
+Links to this material are available in the course Web pages.
+
+You are expected to master these systems largely by reading the manuals.
+
+However ...
+\begin{itemize}
+\item  we will also give introductory lectures on them 
+\item  the lab exercises will give practice in using them
+\end{itemize}
+{\em{Note:}} {\it{"The ability to read software manuals is an invaluable skill"}} ~ {\small (jas,1999)}
+\end{frame}
+
+\begin{frame}
+\frametitle{Home Computing}
+All of the tools in the course are available under Unix and Linux.
+
+Most have also been ported to {\small } MS Windows. \\
+{\small (generally via the CygWin project)}
+
+All tools should be available on Mac. \\
+{\small (given that Mac OS X is based on FreeBSD Unix)}
+
+Links to downloads will be placed on course Web site.
+\end{frame}
+
+\begin{frame}
+\frametitle{Home Computing}
+There may be minor incompatibilities between Unix, Windows and Mac
+versions of tools.
+
+Therefore ... {\em{test your assignments at CSE}} before you submit them.
+
+{\small 
+{\em{Note:}} we expect that any software that {\em{you}}
+produce will be portable to all platforms.
+
+This is accomplished by adhering to {\it{standards}}.
+}
+\end{frame}
+
+\begin{frame}
+\frametitle{Conclusion}
+The goal is for you to become a better programmer
+\begin{itemize}
+\item  more confident in your own ability
+\item  producing a better end-product
+\item  ultimately, enjoying the programming process
+\end{itemize}
+\end{frame}
+
+\end{document}

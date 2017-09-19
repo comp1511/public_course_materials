@@ -1,0 +1,111 @@
+{% extends "templates/base.html" %}
+{% block title %}
+Connecting to CSE using VLAB
+{% endblock %}
+
+{% block body_contents %}
+
+<ol>
+
+<li>
+
+Install a VNC viewer. There are a number of free VNC viewers.
+<p>
+We recommend TigerVNC which runs on Windows OSX (Macs) and Linux.
+<p>
+
+Download TigerVNC <b>viewer</b> <a href="https://bintray.com/tigervnc/stable/tigervnc/1.7.1">here</a>.
+<p>
+You want the link ending in dmg for OSX (Mac).  For windows you want on of the .exe links, depending on
+whether you are running 32 or 64-bit windows.
+<p>
+Then follow any installation instructions.
+
+<li>
+
+We recommend you use UNSW's VPN Service to connect from outside UNSW.
+<p>
+If you login with zpass/zid to <a href="https://vpn.unsw.edu.au/">https://vpn.unsw.edu.au/</a> you
+should be able to download and install the AnyConnect Secure Mobility Client.
+
+<li>
+Run the AnyConnect Secure Mobility Client
+<p>
+<img width="512" src="AnyConnect.png">
+<p>
+<li>
+Then log in using your student id and zpass and then click Accept after reading the conditions.
+<p>
+<img src="LogInAny.png">
+<p>
+<li>
+    Start your TigerVNC <b>viewer</b> (or your other chosen VNC Viewer) and enter your VNC server as <code>vlab.cse.unsw.edu.au:5913</code>
+<p>
+The last number is the port.  It determines the resolution vlab provides.
+On a high-resolution screen try 5916 for 1920x1080 (<a href="http://taggi.cse.unsw.edu.au/Vlab/#Key_points" >see details about ports here</a>)
+<p>
+<table>
+    <tr>
+        <th>Resolution</th>
+        <th>vlab port</th>
+    </tr>
+    <tr>
+        <td>640 x 480 </td>
+        <td>vlab.cse.unsw.edu.au:<b>5911</b> </td>
+    </tr> <tr>
+        <td>800 x 600  </td>
+        <td>vlab.cse.unsw.edu.au:<b>5912</b> </td>
+    </tr> <tr>
+        <td>1024 x 768 </td>
+        <td>vlab.cse.unsw.edu.au:<b>5913</b> </td>
+    </tr> <tr>
+        <td>1280 x 800 </td>
+        <td>vlab.cse.unsw.edu.au:<b>5914</b> </td>
+    </tr> <tr>
+        <td>1680 x 1050 </td>
+        <td>vlab.cse.unsw.edu.au:<b>5915</b> </td>
+    </tr> <tr>
+        <td>1920 x 1080 </td>
+        <td>vlab.cse.unsw.edu.au:<b>5916</b> </td>
+    </tr>
+</table>
+<p>
+<img width="512" src="VLab.png">
+<p>
+<li>
+Log into vlab using your zid/zpass.
+<p>
+<img width="512" src="VLABLOGIN.png">
+<p>
+<li>
+Read and accept the WARNING about conduct using CSE machines
+<li>
+Click <b>Ok</b> to dismiss the information box showing you your resources.
+<li>
+Read about the vlab configuration file (.xsession-vlab) which is created the first time you log into VLab.
+It is set to start <b>XFCE</b> window manager.
+<p>
+<img width="512" src="VLabConfig.png">
+<p>
+<li>
+Assuming you chose XFCE4 you will see something like:
+<p>
+<img  width="512" src="Desktop.png">
+<p>
+We recommend making a change to the settings, so you use what we think is the best terminal. Goto the Applications Menu-&gt;Settings-&gt;Settings Manager, you should click on Preferred Applications and then the Utilities tab and select the Xfce Terminal as your terminal Emulator. This is illustrated below:
+<p>
+<img  width="512" src="NewWindowManager.png">
+<p>
+You can now right click on your desktop and open a terminal.
+<p>
+<img  width="512" src="terminal.png">
+<p>
+<li>
+Use <b>cd</b> and <b>ls</b> to find the files you have been working on in your labs.
+<p>
+Try running <b>gedit</b> and <b>dcc</b>.
+</ol>
+
+For more information about Vlab and for alternatives to UNSW's VPN service,see the documentation: <a href="http://taggi.cse.unsw.edu.au/Vlab/">http://taggi.cse.unsw.edu.au/Vlab/</a>
+
+{% endblock %}

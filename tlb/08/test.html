@@ -1,0 +1,93 @@
+{% set programs = 'middle_lines.pl largest_numbered_line.pl' %}
+{% set submission_deadline = 'Thursday 21 September 23:59' %}
+{% extends "templates/test.html" %}
+
+{% block questions %}
+
+<h3>Exercise: Middle Lines </h3>
+
+Write a Perl program middle_lines.pl which  prints the middle line(s) in a file.
+<p>
+If the file contains an odd number of lines it should print one line.
+<p>
+If the file contains an even number of lines it should print two lines.
+<p>
+If the file contains no lines it should print nothing.
+<p>
+You can assume one and only one file is given as argument and that it exists and it is readable.
+<p>
+For example:
+
+{{execute("cat odd.txt;./middle_lines.pl odd.txt;cat even.txt;./middle_lines.pl even.txt;./middle_lines.pl /dev/null", cwd="solutions")}}
+
+
+
+{{autotest_reminder("middle_lines.pl")}}
+
+<p></p>
+<h3>Exercise: Largest Numbered Line</h3>
+
+Write a Perl program <b>largest_numbered_line.pl</b> that read lines
+from standardinput until end-of-input. It should then print the line(s)
+which contained the largest number.
+<p>
+You can assume numbers do not contain white space, commas or
+other extra characters.
+<p>
+You can assume numbers are only in decimal format.
+<p>
+You can assume numbers are not in scientific/exponential format.
+<p>
+Lines may contain multiple numbers and they may contain any
+number of any character between the numbers.
+<p>
+If the largest number occurs on multiple lines you should print all of the lines
+in the order they occurred.
+<p>
+If no line contains a number, your program should print nothing.
+
+{{execute("./largest_numbered_line.pl", cwd='solutions', input=
+"""I spent $ 15.50 for
+3.3 kg apples yesterday.
+2000 is a leap year.
+""")}}
+
+{{execute("./largest_numbered_line.pl", cwd='solutions', input=
+"""two2 four4 eight8 sixteen16
+1 sixteen-and-half 16.5  1
+11 12 13
+""")}}
+
+{{execute("./largest_numbered_line.pl", cwd='solutions', input=
+"""the quick brown f42ox
+4 9 42 2 4
+1 2 3 4 42.0
+no forty two
+last 42
+""")}}
+
+{{execute("./largest_numbered_line.pl", cwd='solutions', input=
+"""a 0.01
+b .5
+c -0.9
+""")}}
+
+
+{{execute("./largest_numbered_line.pl", cwd='solutions', input=
+"""a -.5
+b -5
+c --90--
+""")}}
+
+{{execute("./largest_numbered_line.pl", cwd='solutions', input=
+"""I love programming in Perl
+but I like Python better.
+""")}}
+
+{{autotest_reminder("largest_numbered_line.pl")}}
+
+<p></p>
+
+
+{% endblock %}
+</p></p></p></p></p></p></p></p></p></p></p>

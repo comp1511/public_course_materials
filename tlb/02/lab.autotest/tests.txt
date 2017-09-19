@@ -1,0 +1,22 @@
+program=lab02.txt
+shell=True
+
+label=q1 command="grep '^Q1 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q2 command="grep '^Q2 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q3 command="grep '^Q3 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q4 command="grep '^Q4 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q5 command="grep '^Q5 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q6 command="grep '^Q6 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q7 command="grep '^Q7 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q8 command="grep '^Q8 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q9 command="grep '^Q9 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q10 command="grep '^Q10 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q11 command="grep '^Q11 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q12 command="grep '^Q12 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q13 command="grep '^Q13 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q14 command="grep '^Q14 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q15 command="grep '^Q15 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q16 command="grep '^Q16 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q17 command="grep '^Q17 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q18 command="grep '^Q18 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"
+label=q19 command="grep '^Q19 answer' lab02.txt|tail -1|sed 's/.*answer[: ]*//'|sh"

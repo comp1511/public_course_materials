@@ -1,0 +1,135 @@
+{% set programs = "bashpl.pl printpy.pl iterated_printpy.pl" %}
+{% extends "templates/lab.html" %}
+{% block objectives %}
+<ul>
+<li> Developing Perl skills
+<li> Translating Bash to Perl
+<li> Getting started with Assignment 1
+</li></li></li></ul>
+{% endblock %}
+
+{% block lab_exercises %}
+
+<h3>Background</h3>
+
+We have covered only a small amount of Perl in lectures. In fact, to
+cover the whole language in detail would take a whole semester, so
+we're going to rely on you finding out about the language yourself
+in tutes, labs and assignments. A good place to start is
+the Perl documentation &amp; tutorial links on the class home page
+For example you might find these useful:
+
+<ul>
+<li> <a href="http://search.cpan.org/dist/perl/pod/perlsyn.pod" target="doc">Perl language syntax</a>
+<li> <a href="http://search.cpan.org/dist/perl/pod/perlsub.pod" target="doc">Perl functions</a>
+<li> <a href="http://search.cpan.org/dist/perl/pod/perlop.pod" target="doc">Perl operators</a>
+</li></li></li></ul>
+<h3>Exercise: Translating Bash Scripts </h3>
+
+We have some Shell (Bash) scripts which do arithmetic calculations which we need to
+translate to Perl.
+<p>
+Write a Perl program <code>bashpl.pl</code> which takes such a Bash script as input
+and outputs an equivalent Perl program.
+<p>
+The scripts use the arithmetic syntax supported by Bash (and
+several other shells).  Fortunately the scripts only use a very limited set of shell features.
+<p>
+You can assume all the  features you need to translate
+are present in the following 4 examples.
+<p>
+<ul>
+<li> <a href="sum.sh">sum.sh</a> sums a series of integers:
+
+{{execute("cat sum.sh;./sum.sh;./bashpl.pl sum.sh;./bashpl.pl sum.sh|perl", cwd="solutions")}}
+
+Or you can put the Perl in a file and run it:
+
+<pre class="command_line">
+<kbd class="shell">./bashpl.pl sum.sh &gt;sum.pl</kbd>
+<kbd class="shell">chmod 700 ./sum.pl</kbd>
+<kbd class="shell">./sum.pl</kbd>
+Sum of the integers 1 .. 100 = 5050
+</pre>
+<li> <a href="double.sh">double.sh</a> prints powers of two:
+
+
+{{execute("cat double.sh;./bashpl.pl double.sh;./bashpl.pl double.sh|perl", cwd="solutions")}}
+
+<li> <a href="pythagorean_triple.sh">pythagorean_triple.sh</a> searches for Pythagorean triples:
+
+{{execute("cat pythagorean_triple.sh;./bashpl.pl pythagorean_triple.sh;./bashpl.pl pythagorean_triple.sh|perl", cwd="solutions")}}
+
+<li> <a href="collatz.sh">collatz.sh</a> prints an interetsing series:
+
+{{execute("cat collatz.sh;./bashpl.pl collatz.sh;./bashpl.pl collatz.sh|perl", cwd="solutions")}}
+</li></li></li></li></ul>
+
+{{autotest_reminder("bashpl.pl")}}
+
+<p></p>
+<h3>Challenge Exercise: printpy</h3>
+
+Write a Perl program  <code>printpy.pl</code>  which is given a single argument.
+It should output a Python program which prints this string.  For example:
+
+{{execute("./printpy.pl 'Perl that print Python - yay' |python3", cwd="solutions")}}
+
+You can assume the string contains only ASCII characters.
+You can not make other assumptions about the characters in the string.
+
+{{autotest_reminder("printpy.pl")}}
+
+<p></p>
+<h3>Challenge Exercise: iterated printpy</h3>
+
+Write a Perl program  <code>iterated_printpy.pl</code>  which is given a two arguments,
+an integer <b>n</b> and a string.
+<p>
+If <b>n</b> is 0 it should  output a Python program which prints the string - in other words the same behaviour as    <code>printpy.pl</code>.
+<p>
+If <b>n</b> is 1 it should  output a Python program which prints a Perl program which prints a Python program which prints the string.
+<p>
+If <b>n</b> is 2 it should  output a Python program which prints a Perl program which prints a Python program which prints a Perl program which prints a Python program which prints the string.
+<p>
+And so on for larger values of <b>n</b>.
+<p>
+For example:
+
+{#
+
+{{execute("""
+./iterated_printpy.pl 0 'Perl that prints Python'|python3;
+./iterated_printpy.pl 1 'Perl that prints Python that Prints Perl that print Python'|python3|perl|python3;
+./iterated_printpy.pl 2 'Perl that ....'|python3|perl|python3|perl|python3;
+./iterated_printpy.pl 4 'Andrew Rocks!'|python3|perl|python3|perl|python3|perl|python3|perl|python3;
+./iterated_printpy.pl 10 'I love COMP[29]041!'|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3
+""", cwd="solutions")}}
+
+#}
+
+<pre class="command_line" style="max-height: 32em;overflow:  auto;">
+<kbd class="shell">./iterated_printpy.pl 0 'Perl that prints Python'|python3</kbd>
+Perl that prints Python
+<kbd class="shell">./iterated_printpy.pl 1 'Perl that prints Python that Prints Perl that print Python'|python3|perl|python3</kbd>
+Perl that prints Python that Prints Perl that print Python
+<kbd class="shell">./iterated_printpy.pl 2 'Perl that ....'|python3|perl|python3|perl|python3</kbd>
+Perl that ....
+<kbd class="shell">./iterated_printpy.pl 4 'Andrew Rocks!'|python3|perl|python3|perl|python3|perl|python3|perl|python3</kbd>
+Andrew Rocks!
+<kbd class="shell">./iterated_printpy.pl 10 'I love COMP[29]041!'|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3|perl|python3</kbd>
+I love COMP[29]041!
+</pre>
+
+You can assume the string contains only ASCII characters.
+You can not make other assumptions about the characters in the string.
+
+{{autotest_reminder("iterated_printpy.pl")}}
+
+<p></p>
+
+
+
+
+{% endblock %}
+</p></p></p></p></p></p></p></p></p>

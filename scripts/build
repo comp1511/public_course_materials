@@ -1,0 +1,93 @@
+ #!/bin/bash
+. $(dirname $(readlink -f $0))/config.sh
+
+cd $public_html_session_directory || exit 1
+touch .build_started
+
+chmod 755 public
+cd private
+git diff --name-only `git reflog|sed 2q|cut -c1-8`|set_filesystem_permissions
+chmod 750 .
+
+rsync_public_files
+
+case `whoami` in
+cs[0-9][0-9][0-9][0-9])
+	htaccess_suffix=class_account
+	link_dir=public
+	;;
+*)
+	htaccess_suffix=localhost
+	link_dir=private
+esac
+
+cd $public_html_session_directory
+
+# these symlinks allow images etc to be directly served
+# from lab, tut or test URLs
+rm -f lab tut test
+ln -sf tlb lab
+ln -sf tlb tut
+ln -sf tlb test
+
+for d in *
+do
+	test -L "$d" && test ! -r "$d" && rm -f "$d"
+done
+
+for d in `ls $public_html_session_directory/public` .htaccess
+do
+	ln -sf $link_dir/$d
+done
+
+ln -sf private/.flask_key
+ln -sf private/.github_secret
+
+cd ..
+for d in *
+do
+	test ! -r "$d" && rm -f "$d"
+done
+
+dir=`basename $public_html_session_directory`
+for d in `ls $public_html_session_directory/public` .htaccess .flask_key .github_secret
+do
+	test "$d" != doc && ln -sf $dir/$d
+done
+
+cd $public_html_session_directory
+
+for d in . cgi cgi/*/ assignments/*/tournament
+do
+	s=$htaccess_suffix
+	# use "class_account" htaccess for CGI account if there is no "cgi" htaccess
+	test ! -r  $d/htaccess.$s && s=class_account
+	if test -r $d/htaccess.$s
+	then
+		chmod 644 $d/htaccess.$s
+		ln -sf htaccess.$s $d/.htaccess
+	else
+		rm -f $d/.htaccess
+	fi
+done
+
+
+cd $public_html_session_directory/private/.git/hooks/
+ln -sf ../../scripts/git-pre-commit pre-commit
+ln -sf ../../scripts/git-post-merge post-merge
+
+
+for p in public private
+do
+	cd $public_html_session_directory/$p
+	last_two_commits=`git reflog|sed 2q|cut -c1-8`
+	for d in lec assignments/* tlb/*
+	do
+		cd $public_html_session_directory/$p/$d
+		git diff --quiet $last_two_commits -- . && continue
+		test -x build.sh && </dev/null ./build.sh
+		test -e Makefile && </dev/null make -j10 -s
+	done
+done
+
+touch .build_finished

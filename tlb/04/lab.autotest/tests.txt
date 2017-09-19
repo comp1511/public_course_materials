@@ -1,0 +1,46 @@
+max_cpu=3
+max_wall_clock=30
+
+shell=True
+setup_command_shell=True
+
+setup_command="rm -rf *.jpg *.png; unzip -q /home/cs2041/public_html/tlb/04/images.zip"
+program=jpg2png.sh
+jpg2png_0 command="jpg2png.sh; file *.png"
+
+setup_command="rm -rf *.jpg *.png; unzip -q /home/cs2041/public_html/tlb/04/images.zip;echo >nautilus.png"
+jpg2png_1 command="jpg2png.sh 2>&1"
+
+setup_command="rm -rf *.jpg *.png; unzip -q /home/cs2041/public_html/tlb/04/images.zip"
+program=date_image.sh
+challenge_date_image command="date_image.sh *.jpg;stat -c'%y %n' *.jpg"
+
+setup_command_shell=True
+setup_command="rm -rf tiny_music; unzip -q /home/cs2041/public_html/tlb/04/tiny_music.zip"
+shell=True
+program=fix_id3_tags.sh
+max_cpu=10
+max_wall_clock=60
+
+fix_id3_tags_tiny_album1 command="fix_id3_tags.sh tiny_music/Album1*; id3 -l tiny_music/Album1*/*.mp3"
+fix_id3_tags_tiny_album2 command="fix_id3_tags.sh tiny_music/Album2*; id3 -l tiny_music/Album2*/*.mp3"
+fix_id3_tags_tiny_both command="fix_id3_tags.sh tiny_music/Album*; id3 -l tiny_music/Album*/*.mp3"
+
+setup_command="rm -rf music; unzip -q /home/cs2041/public_html/tlb/04/music.zip"
+fix_id3_tags_1993_7 command="fix_id3_tags.sh music/*1993/; id3 -l music/*1993/7*.mp3"
+fix_id3_tags_2009_2 command="fix_id3_tags.sh music/*2009"; id3 -l "music/*2009/2*.mp3"
+fix_id3_tags_1994 command="fix_id3_tags.sh music/*1994; id3 -l music/*1994/*.mp3"
+fix_id3_tags_1999 command="fix_id3_tags.sh music/*1999; id3 -l music/*1999/*.mp3"
+fix_id3_tags_1995_1996 command="fix_id3_tags.sh music/*199[56]/; id3 -l music/*199[56]/*.mp3"
+
+max_cpu=20
+max_wall_clock=120
+fix_id3_tags_all command="fix_id3_tags.sh music/*;id3 -l music/*/*.mp3"
+
+max_cpu=20
+max_wall_clock=120
+setup_command_shell=True
+setup_command="rm -rf tiny_music music"
+
+program=create_music.sh
+challenge_create_music command="create_music.sh sample.mp3 created_music;id3 -l created_music/*/*.mp3"
