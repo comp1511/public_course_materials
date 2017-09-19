@@ -33,24 +33,24 @@ unsw_session='17s2'
 # home directories are not mounted
 # and public_html directory are mounted as /web/account/
 #
-
-dir=$(dirname $(readlink -f $0))
-case "$dir" in
-*/public_html/[0-9][0-9]??/*)
-    public_html_session_directory=$(dirname "$dir")
-    unsw_session=$(basename "$public_html_session_directory")
-    public_html_directory=$(dirname "$public_html_session_directory")
-    course_account=$(basename $(dirname "$public_html_directory")|sed 's/[a-z]*$//')
-    ;;
-
-/web/*/[0-9]][0-9]??/*)
-    public_html_session_directory=$(dirname "$dir")
-    unsw_session=$(basename "$public_html_session_directory")
-    public_html_directory=$(dirname "$public_html_session_directory")
-    course_account=$(basename "$public_html_directory"|sed 's/[a-z]*$//')
-    ;;
-
-esac
+#
+#dir=$(dirname $(readlink -f $0))
+#case "$dir" in
+#*/public_html/[0-9][0-9]??/*)
+#    public_html_session_directory=$(dirname "$dir")
+#    unsw_session=$(basename "$public_html_session_directory")
+#    public_html_directory=$(dirname "$public_html_session_directory")
+#    course_account=$(basename $(dirname "$public_html_directory")|sed 's/[a-z]*$//')
+#    ;;
+#
+#/web/*/[0-9]][0-9]??/*)
+#    public_html_session_directory=$(dirname "$dir")
+#    unsw_session=$(basename "$public_html_session_directory")
+#    public_html_directory=$(dirname "$public_html_session_directory")
+#    course_account=$(basename "$public_html_directory"|sed 's/[a-z]*$//')
+#    ;;
+#
+#esac
 
 scripts_directory="$public_html_session_directory/scripts"
 home_directory="/home/$course_account"
