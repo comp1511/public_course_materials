@@ -25,6 +25,7 @@ lecture_recordings_url='https://moodle.telt.unsw.edu.au/course/view.php?id=27708
 
 # these values are only used if they can't be extracted from $0
 public_html_session_directory='/web/cs2041/17s2'
+public_html_directory='/web/cs2041'
 course_account='cs2041'
 unsw_session='17s2'
 
