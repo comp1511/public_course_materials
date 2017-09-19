@@ -16,5 +16,5 @@ for variable in	'REDIRECT_SCRIPT_URI REQUEST_URI SCRIPT_URI PATH_INFO SCRIPT_URL
 if 'PATH_INFO' not in os.environ:
 	os.environ['PATH_INFO'] = ''
 		
-app.secret_key = open('../private/.flask_key').read().strip()
+app.secret_key = open('.flask_key').read().strip()
 CGIHandler().run(app)
