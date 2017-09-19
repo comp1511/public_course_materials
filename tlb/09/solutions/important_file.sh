@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# loop checking if a file exists
+
 important_file=/home/cs2041/public_html/index.html
 
 while ls $important_file >/dev/null 2>&1
