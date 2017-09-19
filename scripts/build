@@ -5,19 +5,30 @@ cd $public_html_session_directory || exit 1
 touch .build_started
 
 chmod 755 public
-chmod 750 private
+cd private
+git diff --name-only `git reflog|sed 2q|cut -c1-8`|set_filesystem_permissions
+chmod 750 .
 
 rsync_public_files
 
 case `whoami` in
 cs[0-9][0-9][0-9][0-9])
 	htaccess_suffix=class_account
+	link_dir=public
 	;;
 *)
 	htaccess_suffix=localhost
+	link_dir=private
 esac
 
 cd $public_html_session_directory
+
+# these symlinks allow images etc to be directly served
+# from lab, tut or test URLs
+rm -f lab tut test
+ln -sf tlb lab
+ln -sf tlb tut
+ln -sf tlb test
 
 for d in *
 do
@@ -65,25 +76,18 @@ cd $public_html_session_directory/private/.git/hooks/
 ln -sf ../../scripts/git-pre-commit pre-commit
 ln -sf ../../scripts/git-post-merge post-merge
 
-cd $public_html_session_directory
-# these symlinks allow images etc to be directly served
-# from lab or tut URLs
-rm -f lab tut test
-ln -sf tlb lab
-ln -sf tlb tut
-ln -sf tlb test
-</dev/null make -j10 -s -C  lec
-#</dev/null make -j10 -s -C  exam
 
-for d in lec exam assignments/* tlb/*
+for p in public private
 do
-	cd $public_html_session_directory/$d
-	git diff --quiet . && continue
-	test -x build.sh && build.sh
-	test -e Makefile && make -j10 -s
+	cd $public_html_session_directory/$p
+	last_two_commits=`git reflog|sed 2q|cut -c1-8`
+	for d in lec assignments/* tlb/*
+	do
+		cd $public_html_session_directory/$p/$d
+		git diff --quiet $last_two_commits -- . && continue
+		test -x build.sh && </dev/null ./build.sh
+		test -e Makefile && </dev/null make -j10 -s
+	done
 done
 
-cd $public_html_session_directory/private/
-chmod 750 .
-git diff --name-only `git reflog|sed 2q|cut -c1-8`|set_filesystem_permissions
 touch .build_finished
