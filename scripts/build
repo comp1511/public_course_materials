@@ -4,9 +4,10 @@
 cd $public_html_session_directory || exit 1
 touch .build_started
 
-test -d public || mkdir public
 chmod 755 public
 chmod 750 private
+
+rsync_public_files
 
 case `whoami` in
 cs[0-9][0-9][0-9][0-9])
@@ -73,6 +74,15 @@ ln -sf tlb tut
 ln -sf tlb test
 </dev/null make -j10 -s -C  lec
 #</dev/null make -j10 -s -C  exam
+
+for d in lec exam assignments/* tlb/*
+do
+	cd $public_html_session_directory/$d
+	git diff --quiet . && continue
+	test -x build.sh && build.sh
+	test -e Makefile && make -j10 -s
+done
+
 cd $public_html_session_directory/private/
 chmod 750 .
 git diff --name-only `git reflog|sed 2q|cut -c1-8`|set_filesystem_permissions
