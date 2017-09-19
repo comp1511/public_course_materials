@@ -1,2 +1,0 @@
-Aug 30
-perl_regex gender_reversal.0.pl gender_reversal.1.pl print_last_number.pl course_first_names.pl course_first_names.pl

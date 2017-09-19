@@ -1,3 +1,0 @@
-Aug 23
-perl_arrays snap_memory.0.pl expel_student.pl
-perl_regex

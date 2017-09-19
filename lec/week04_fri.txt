@@ -1,3 +1,0 @@
-Aug 18
-perl_intro line_chars.pl snap_consecutive.pl exponential_concatenation.pl echo.0.pl echo.1.pl echo.2.pl
-perl_arrays array_growth_demo.pl sum_arguments.pl line_count.0.pl line_count.1.pl line_count.3.pl reverse_lines.0.pl reverse_lines.1.pl reverse_lines.2.pl cp.0.pl cp.2.pl

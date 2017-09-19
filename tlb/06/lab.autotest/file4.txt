@@ -1,2 +1,0 @@
-file4_line1
-file4_line2

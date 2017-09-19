@@ -1,2 +1,0 @@
-Aug 04
-shell word_frequency.sh tolower.sh

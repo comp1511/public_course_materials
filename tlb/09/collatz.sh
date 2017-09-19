@@ -1,1 +1,0 @@
-lab.autotest/collatz.sh

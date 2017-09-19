@@ -1,2 +1,0 @@
-Sep 1
-perl_functions my_declaration_bug.pl sum_list.pl print_odd.pl

@@ -1,8 +1,0 @@
-pythagoras.pl
-sum_stdin.pl
-line_chars.pl
-snap_consecutive.pl
-exponential_concatenation.pl
-echo.0.pl
-echo.1.pl
-echo.2.pl

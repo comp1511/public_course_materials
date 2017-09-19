@@ -1,1 +1,0 @@
-lab.autotest/words.txt
