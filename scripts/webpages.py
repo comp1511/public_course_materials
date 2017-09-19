@@ -327,6 +327,8 @@ def render_template_with_variables(page, **template_variables):
 	tv = get_common_template_variables()
 	tv['template_pathname'] = page.lstrip('/')
 	tv.update(template_variables)
+	if is_tutor():
+		tv['directory_relative_pathname'] = os.path.join('private', tv['directory_relative_pathname'])
 	tv['directory_absolute_pathname'] = os.path.join(config.variables['public_html_session_directory'], tv['directory_relative_pathname'])
 	tv['current_directory'] = tv['directory_absolute_pathname'] # backwards compatibility
 	if is_tutor():
@@ -342,7 +344,6 @@ def get_common_template_variables(static_checking=False):
 
 	# set default values assuming URL maps into filesystem
 	tv['directory_relative_pathname'] = os.path.dirname(request.path).lstrip('/')
-
 	tv['todays_date'] = datetime.date.today()
 
 	# pass in some functions from this file so they can beused in templates
