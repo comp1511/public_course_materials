@@ -1,0 +1,1142 @@
+\input{include.tex}
+\begin{document}
+\section{Filters and Regular Expressions}
+\begin{frame}
+\frametitle{Unix Processes}
+A Unix process executes in this environment
+
+	\begin{figure}
+    	\centering
+    	\includegraphics[width = 0.9\textwidth]{Pic/unixproc}
+    	% \caption{Caption}
+  	\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Unix Processes: C programmer's view}
+Components of process environment {\small (C programmer's view)}:
+\begin{itemize}
+\item  \textbf{\tt{char *argv[]}} - command line arguments
+\item  \textbf{\tt{int argc}} - size of \textbf{\tt{argv[]}}
+\item  \textbf{\tt{char *env[]}} - \textbf{\tt{name-value}} pairs from parent process
+\item  \textbf{\tt{FILE *stdin}} - input byte-stream, e.g. \textbf{\tt{getchar()}}
+\item  \textbf{\tt{FILE *stdout}} - output byte-stream, e.g. \textbf{\tt{putchar()}}
+\item  \textbf{\tt{FILE *stderr}} - output byte-stream, e.g. \textbf{\tt{fputc(c, stderr)}}
+\item  \textbf{\tt{exit(int)}} - terminate program, set exit status 
+\item  \textbf{\tt{return int}} - terminate \textbf{\tt{main()}}, set exit status
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Output a file: C Code}
+\begin{C}
+// write bytes of stream to stdout
+void process_stream(FILE *in) {
+    while (1) {
+        int ch = fgetc(in);
+        if (ch == EOF)
+             break;
+        if (fputc(ch, stdout) == EOF) {
+            fprintf(stderr, "cat:");
+            perror("");
+            exit(1);
+        }
+    }
+}
+\end{C}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Process files/stdin: C Code}
+\begin{small}
+\begin{C}
+// process files given as arguments
+// if no arguments process stdin
+int main(int argc, char *argv[]) {
+    if (argc == 1)
+        process_stream(stdin);
+    else
+        for (int i = 1; i < argc; i++) {
+            FILE *in = fopen(argv[i], "r");
+            if (in == NULL) {
+                fprintf(stderr, "cat: %s: ", argv[i]);
+                perror("");
+                return 1;
+            }
+            process_stream(in);
+            fclose(in);
+        }
+    return 0;
+}
+\end{C}
+\end{small}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Count Lines, Words, Chars: C Code}
+\begin{C}
+// count lines, words, chars in stream 
+void count_file(FILE *in) {
+    int n_lines = 0, n_words = 0, n_chars = 0;
+    int in_word = 0, c;
+    while ((c = fgetc(in)) != EOF) {
+        n_chars++;
+        if (c == '\n')
+            n_lines++;
+        if (isspace(c))
+            in_word = 0;
+        else if (!in_word) {
+            in_word = 1;
+            n_words++;
+        }
+    }
+    printf("%6d %6d %6d", n_lines, n_words, n_chars);
+}
+\end{C}
+\end{frame}
+
+\begin{frame}
+\frametitle{What is a filter?}
+{\em{Filter}}: a program that transforms a data stream.
+
+On Unix, filters are commands that:
+\begin{itemize}
+\item  read text from their standard input or specified files
+\item  perform useful transformations on the text stream
+\item  write the transformed text to their standard output
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{What is a filter?}
+Example: ~ \textbf{\tt{cat MyProg.c}}
+\begin{itemize}
+\item  reads the text of the program in the file \textbf{\tt{MyProg.c}}
+\item  writes the (untransformed) text to standard output (i.e. the screen)
+\end{itemize}
+Example: ~ \textbf{\tt{cat {\textless}MyProg.c}}
+\begin{itemize}
+\item  the shell (command interpreter)
+connects the file \textbf{\tt{MyProg.c}} to standard input of \textbf{\tt{cat}}
+\item  \textbf{\tt{cat}} reads its standard input
+\item  writes the (untransformed) text to standard output (i.e. the screen)
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Using Filters}
+Shell I/O redirection can be used to specify filter source and destination:
+
+	\begin{figure}
+    	\centering
+    	\includegraphics[width = 0.9\textwidth]{Pic/filter1}
+    	% \caption{Caption}
+  	\end{figure}
+Alternatively, most filters allow multiple sources to be specified:
+
+	\begin{figure}
+    	\centering
+    	\includegraphics[width = 0.9\textwidth]{Pic/filter2}
+    	% \caption{Caption}
+  	\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Using Filters}
+In isolation, filters are reasonably useful
+
+In combination, they provide a very powerful problem-solving toolkit.
+
+Filters are normally used in combination via a pipeline:
+
+	\begin{figure}
+    	\centering
+    	\includegraphics[width = 0.9\textwidth]{Pic/filter3}
+    	% \caption{Caption}
+  	\end{figure}
+Note: similar style of problem-solving to function composition.
+\end{frame}
+
+\begin{frame}[shrink,fragile]
+\frametitle{Using Filters}
+Unix filters use common conventions for command line arguments:
+\begin{itemize}
+\item  input can be specified by a list of file names
+\item  if no files are mentioned, the filter reads from standard input
+        {\small (which may have been connected to a file)}
+\item  the filename ``{\bf{\textbf{\tt{-}}}}'' corresponds to standard input
+\end{itemize}
+Examples:
+\begin{verbatim}
+    # read from the file data1
+    filter data1
+    # or
+    filter < data1
+    
+    # read from the files data1 data2 data3
+    filter data1 data2 data3
+    
+    # read from data1, then stdin, then data2
+    filter data1 - data2
+\end{verbatim}
+
+If filter doesn't cope with named sources, use \textbf{\tt{cat}}
+at the start of the pipeline
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Using Filters}
+Filters normally perform multiple variations on a task.
+
+Selection of the variation is accomplished via command-line options:
+\begin{itemize}
+\item  options are introduced by a {\bf{\textbf{\tt{-}}}} ("minus" or "dash")
+\item  options have a "short" form, {\bf{\textbf{\tt{-}}}} followed by a single letter
+        ~ {\small (e.g. \textbf{\tt{-v}})}
+\item  options have a "long" form, {\bf{\textbf{\tt{--}}}} followed by a word
+        ~ {\small (e.g. \textbf{\tt{--verbose}})}
+\item  short form options can usually be combined
+        ~ {\small (e.g. \textbf{\tt{-av}} ~{\small vs}~ \textbf{\tt{-a -v}})}
+\item  \textbf{\tt{--help}} (or \textbf{\tt{-?}}) often gives a list of all command-line options
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Filters: Option}
+
+Most filters have {\it{many}} options for controlling their behaviour.
+
+Unix {\bf{man}}ual entries describe how each option works.
+
+To find what filters are available: \textbf{\tt{man -k}} {\it{keyword}}
+
+The solution to all your problems: {\em{{\bf{RTFM}}}}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Delimited Input}
+Many filters are able to work with text data formatted as {\em{fields}}
+(columns in spreadsheet terms).
+
+Such filters typically have an option for specifying the delimiter or field separator.
+\\
+{\small (Unfortunately, they often make different assumptions about the default column separator)}
+
+Example (tab-separated columns):
+\begin{verbatim}
+    John   99
+    Anne   75
+    Andrew 50
+    Tim    95
+    Arun   33
+    Sowmya 76
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Delimited Input}
+Example (verticalbar-separated columns, enrolment file):
+\begin{verbatim}
+    COMP1011|2252424|Abbot, Andrew John    |3727|1|M
+    COMP2011|2211222|Abdurjh, Saeed        |3640|2|M
+    COMP1011|2250631|Accent, Aac-Ek-Murhg  |3640|1|M
+    COMP1021|2250127|Addison, Blair        |3971|1|F
+    COMP4012|2190705|Allen, David Peter    |3645|4|M
+    COMP4910|2190705|Allen, David Pater    |3645|4|M
+\end{verbatim}
+Example (colon-separated columns, old Unix password file):
+\begin{small}
+\begin{verbatim}
+root:ZHolHAHZw8As2:0:0:root:/root:/bin/bash
+jas:nJz3ru5a/44Ko:100:100:John Shepherd:/home/jas:/bin/bash
+cs1021:iZ3sO90O5eZY6:101:101:COMP1021:/home/cs1021:/bin/bash
+cs2041:rX9KwSSPqkLyA:102:102:COMP2041:/home/cs2041:/bin/bash
+cs3311:mLRiCIvmtI9O2:103:103:COMP3311:/home/cs3311:/bin/bash
+\end{verbatim}
+\end{small}
+\end{frame}
+
+\begin{frame}[shrink,fragile]
+\frametitle{\textbf{\tt{cat}}: the simplest filter}
+The \textbf{\tt{cat}} command copies its input to output unchanged (identity filter).
+
+When supplied a list of file names, it con{\bf{cat}}enates them onto stdout. 
+
+Some options:
+
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-n}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}{\bf{n}}umber output lines {\small (starting from 1)}~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-s}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}{\bf{s}}queeze consecutive blank lines into single blank line~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-v}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}display control-characters in {\bf{v}}isible form (e.g. \textbf{\tt{{\textasciicircum}C}})~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+
+The \textbf{\tt{tac}} command copies files, but reverses the order of lines.
+
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{\textbf{\tt{wc}}: word counter}
+The \textbf{\tt{wc}} command is a summarizing filter.
+
+Useful with other filters to count things.
+
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-c}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}counts the number of {\bf{c}}haracters ~ {\small (incl. \textbf{\tt{\\n}})}~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-w}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}counts the number of {\bf{w}}ords ~ {\small (non-white space)}~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-l}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}counts the number of {\bf{l}}ines~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+{\small 
+Some filters find counting so useful that they define
+their own options for it (e.g. \textbf{\tt{grep -c}})
+}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{\tt{tr}}: transliterate characters}
+The \textbf{\tt{tr}} command converts text char-by-char according to a mapping.
+\begin{verbatim}
+    tr 'sourceChars' 'destChars' < dataFile
+\end{verbatim}
+
+
+Each input character from $sourceChars$ is
+mapped to the corresponding character in $destChars$.
+
+Example:
+\begin{verbatim}
+    tr 'abc' '123' < someText
+\end{verbatim}
+
+Has $sourceChars$=\textbf{\tt{'abc'}}, $destChars$=\textbf{\tt{'123'}},
+        so: \\
+        \textbf{\tt{a}} $\rightarrow$ \textbf{\tt{1}},
+        \textbf{\tt{b}} $\rightarrow$ \textbf{\tt{2}},
+        \textbf{\tt{c}} $\rightarrow$ \textbf{\tt{3}}
+
+Note: \textbf{\tt{tr}} doesn't accept file name on command line.
+\end{frame}
+
+\begin{frame}
+\frametitle{\textbf{\tt{tr}}: transliterate characters}
+Characters that are not in $sourceChars$ are copied unchanged to output.
+
+If there is no corresponding character (i.e. $destChars$ is shorter than $sourceChars$), then the last char in $destChars$ is used.
+
+Shorthands are available for specifying character lists:
+
+E.g. \textbf{\tt{'a-z'}} is equivalent to \textbf{\tt{'abcdefghijklmnopqrstuvwxyz'}}
+
+Note: newlines will be modified if the mapping specification requires it.
+\end{frame}
+
+\begin{frame}
+\frametitle{\textbf{\tt{tr}}: transliterate characters}
+Some options:
+
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-c}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}map all characters {\em{not}} occurring in $sourceChars$ {\small ({\bf{c}}omplement)}~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-s}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}{\bf{s}}queeze adjacent repeated characters out (only copy the first)~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-d}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}{\bf{d}}elete all characters in $sourceChars$ (no $destChars$)~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{\tt{tr}}: transliterate characters}
+Examples:
+\begin{verbatim}
+    # map all upper-case letters to lower-case equivalents
+    tr 'A-Z' 'a-z' < text
+    
+    # simple encryption (a->b, b->c, ... z->a)
+    tr 'a-zA-Z' 'b-zaB-ZA' < text
+    
+    # remove all digits from input
+    tr -d '0-9' < text
+    
+    # break text file into individual words, one per line
+    tr -cs 'a-zA-Z0-9' '\n' < text
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{\textbf{\tt{head}}/\textbf{\tt{tail}}: select lines}
+
+\begin{itemize}
+\item
+\textbf{\tt{head}} prints the first $n$ (default 10) lines of input.
+
+E.g. \textbf{\tt{head file}} prints first 10 lines of \textbf{\tt{file}}.
+
+\textbf{\tt{-n}} option changes numbe rof lines head/tail prints.
+
+\item
+
+The \textbf{\tt{tail}} prints the last  $n$   lines of input.
+
+E.g. \textbf{\tt{tail-n 30 file}} prints last 30 lines of \textbf{\tt{file}}.
+
+\item
+Combine \textbf{\tt{head}} and \textbf{\tt{tail}} to select a range of lines.
+
+E.g. \textbf{\tt{head -n 100 | tail -n 20}} copies lines 81..100 to output.
+
+\end{itemize}
+
+With more than one file prefixes with name (see labs).
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{\textbf{\tt{egrep}}: select lines matching a pattern}
+The \textbf{\tt{egrep}} command only copies to output those lines in the input
+that match a specified pattern.
+
+The pattern is supplied as a regular expression on the command line
+{\small (and should be quoted using single-quotes)}.
+
+Some options:
+
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-i}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}ignore upper/lower-case difference in matching~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-v}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}only display lines that {\em{do not}} match the pattern~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-w}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}only match pattern if it makes a complete word~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+
+\end{frame}
+
+\begin{frame}
+\frametitle{The grep family}
+
+\textbf{\tt{egrep}} is one of a group of related filters
+using different kinds of pattern match:
+
+\begin{itemize}
+\item  \textbf{\tt{grep}} uses a limited form of POSIX regular expressions
+(no \textbf{\tt{+ ? |}} or parentheses)
+\item \textbf{\tt{egrep}} (extended grep) implements the full regex syntax
+\item \textbf{\tt{fgrep}} finds any of several (maybe even thousands of)
+fixed strings using an optimised algorithm.
+\end{itemize}
+
+{\small (The name \textbf{\tt{grep}} is an acronym for {\bf{G}}lobally search with {\bf{R}}egular {\bf{E}}xpressions and {\bf{P}}rint)}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Regular Expressions}
+A {\em{regular expression}} (regex) defines a
+a set of strings.
+
+A {\em{regular expression}}  usually thought of as a pattern
+
+Specifies a possibly infinite set of strings.
+
+They can be succinct and powerful.
+
+Regular expressions libraries are available for most languages.
+
+In the Unix environment:
+\begin{itemize}
+\item  a lot of data is available in plain text format
+\item  many tools make use of regular expressions for searching
+\item  effective use of regular expressions makes you more productive
+\end{itemize}
+
+{\small A POSIX standard for regular expressions defines
+the "pattern language" used by many Unix tools.}
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{Regular expressions Basics}
+Regular expressions  specify complex patterns concisely \& precisely.\\[2ex]
+
+\begin{itemize}
+\item  Default: a character matches itself.  E.g. \textbf{a} has no special meaning so it matches the character  \textbf{a}.
+
+\item  Repetition: $p${\bf{\textbf{*}}} denotes zero or more repetitions of $p$.
+
+\item  Alternation:  ~ $pattern_{1}$ {\bf{\textbf{\tt{|}}}} $pattern_{2}$ denotes the union of $pattern_{1}$ and {\bf{\textbf{\tt{|}}}} $pattern_{2}$.\\[2ex]  E.g. \textbf{\tt{perl|python|ruby}} matches any of the strings \textbf{\tt{perl}}, \textbf{\tt{python}} or \textbf{\tt{ruby}} \\[2ex]
+
+\item  Parentheses are used for grouping e.g. $a$\textbf{(,$a$}\textbf{)*} denotes a comma separated list of $a$'s. 
+
+\item  The special meanings of characters can be removed by escaping them with \textbf{\textbackslash}  e.g. \textbf{\textbackslash*} matches the \textbf{*} character anywhere in the input. 
+\end{itemize}
+
+The  above 5 special characters ()*|\textbackslash  are sufficient to express any regular expression
+but many more features are present for convenience \& clarity.
+
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{Patterns for matching Single Characters}
+
+\begin{itemize}
+\item
+The special pattern {\bf{.}} (dot) matches any single character.
+
+\item
+Square brackets provide convenient matching of any {\bf one} of a set of characters.
+
+{\bf{\textbf{\tt{[}}}}$listOfCharacters${\bf{\textbf{\tt{]}}}}
+matches any single character from the list of characters.  E.g. \textbf{\tt{[aeiou]}} matches any vowel.
+
+\item
+A shorthand is available for ranges of characters ~ {\bf{\textbf{\tt{[}}}}$first-last${\bf{\textbf{\tt{]}}}}
+
+Examples: \textbf{\tt{[a-e]  [a-z]  [0-9]  [a-zA-Z]  [A-Za-z]  [a-zA-Z0-9] }}
+
+\item
+The matching can be inverted ~ {\bf{\textbf{\tt{[{\textasciicircum}}}}}$listOfCharacters${\bf{\textbf{\tt{]}}}}
+
+E.g. \textbf{\tt{[{\textasciicircum}a-e]}} matches any character {\it{except}} one of the first five letters
+
+\item
+{\small Other characters  lose their special meaning inside bracket expressions.}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Anchoring Matches}
+We can insist that a pattern appears at the start or end of a string
+
+\begin{itemize}
+\item  the start of the line is denoted by {\bf{\textbf{\tt{{\textasciicircum}}}}} (uparrow)
+E.g. \textbf{\tt{{\textasciicircum}[abc]}} matches either \textbf{\tt{a}} or \textbf{\tt{b}} or \textbf{\tt{c}} at the
+start of a string.
+\item  the end of the line is denoted by {\bf{\textbf{\tt{\$}}}} (dollar)
+E.g. \textbf{\tt{cat\$}} matches \textbf{\tt{cat}} at the end of a string.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Repetition}
+We can specify repetitions of patterns
+\begin{itemize}
+\item  $p${\bf{\textbf{\tt{*}}}} denotes zero or more repetitions of $p$
+\item  $p${\bf{\textbf{\tt{+}}}} denotes one or more repetitions of $p$
+\item  $p${\bf{\textbf{\tt{?}}}} denotes zero or one occurence of $p$
+\end{itemize}
+E.g. \textbf{\tt{[0-9]+}} matches any sequence of digits (i.e. matches integers)
+
+E.g. \textbf{\tt{[-'a-zA-Z]+}} matches any sequence of letters/hyphens/apostrophes \\
+{\small (this pattern could be used to match words in a piece of English text, e.g. \textbf{\tt{it's}}, \textbf{\tt{John}}, ...)}
+
+E.g. \textbf{\tt{[{\textasciicircum}X]*X}} matches any characters up to and including the first \textbf{\tt{X}}
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{Repetition}
+If a pattern can match several parts of the input,
+the first match is chosen.
+
+Examples:
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{5cm}{\bf{Pattern}} ~\end{minipage}
+   & \begin{minipage}{18cm}{\bf{Text}} (with match underlined)~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{5cm}\textbf{\tt{[0-9]+}}~\end{minipage}
+   & \begin{minipage}{18cm}i={\em{1234}} ~ j=56789~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{5cm}\textbf{\tt{[ab]+}}~\end{minipage}
+   & \begin{minipage}{18cm}{\em{aabbabababaaa}}cabba~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{5cm}\textbf{\tt{[+]+}}~\end{minipage}
+   & \begin{minipage}{18cm}C{\em{++}} is a hack~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{Regular Expression Examples}
+
+\begin{center}
+\begin{tabular}{lll}
+
+   \begin{minipage}{2cm}{\bf{Regex}} ~\end{minipage}
+    & \begin{minipage}{9cm}{\bf{Matches}}~\end{minipage}
+\\[1ex]
+
+   \begin{minipage}{2cm}\textbf{\tt{abc}} ~\end{minipage}
+    & \begin{minipage}{9cm}the string of letters \textbf{\tt{"abc"}} \\
+   E.g. \textbf{\tt{abc}}~\end{minipage}
+\\[1ex]
+
+   \begin{minipage}{2cm}\textbf{\tt{a.c}} ~\end{minipage}
+    & \begin{minipage}{9cm}strings of letters containing \textbf{\tt{'a'}} followed by \textbf{\tt{'c'}}
+       with any single character in between\\
+   E.g. \textbf{\tt{abc, aac, acc, aXc, a2c, ...}}~\end{minipage}
+\\[1ex]
+
+   \begin{minipage}{2cm}\textbf{\tt{ab*c}} ~\end{minipage}
+    & \begin{minipage}{9cm}strings of letters containing \textbf{\tt{'a'}} followed by \textbf{\tt{'c'}}
+       with any number of \textbf{\tt{'b'}} letters in between\\
+   E.g. \textbf{\tt{ac, abc, abbc, abbbc, ...}}~\end{minipage}
+\\[1ex]
+
+   \begin{minipage}{2cm}\textbf{\tt{a|the}} ~\end{minipage}
+    & \begin{minipage}{9cm}either the string \textbf{\tt{"a"}} or the string \textbf{\tt{"the"}} \\
+   E.g. \textbf{\tt{a, the}}~\end{minipage}
+\\[1ex]
+
+   \begin{minipage}{2cm}\textbf{\tt{[a-z]}} ~\end{minipage}
+    & \begin{minipage}{10cm}any single lower-case letter \\
+   E.g. \textbf{\tt{a, b, c, ... z}}~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{\textbf{\tt{cut}}: vertical slice}
+The \textbf{\tt{cut}} command prints selected parts of input lines.
+\begin{itemize}
+\item  can select fields (assumes tab-separated columnated input)
+\item  can select a range of character positions
+\end{itemize}
+Some options:
+
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{5cm}{\bf{\textbf{\tt{-f}}$listOfCols$}} ~\end{minipage}
+   & \begin{minipage}{18cm}print only the specified fields (tab-separated) on output~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{5cm}{\bf{\textbf{\tt{-c}}$listOfPos$}} ~\end{minipage}
+   & \begin{minipage}{18cm}print only chars in the specified positions~\end{minipage}
+\\[1ex] 
+
+  \begin{minipage}{5cm}{\bf{\textbf{\tt{-d'}}$c$\textbf{\tt{'}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}use character $c$ as the field separator~\end{minipage} 
+\\[1ex]
+\end{tabular}
+\end{center}
+
+
+Lists are specified as ranges (e.g. \textbf{\tt{1-5}}) or comma-separated (e.g. \textbf{\tt{2,4,5}}).
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{\textbf{\tt{cut}}: vertical slice}
+Examples:
+\begin{verbatim}
+    # print the first column
+    cut -f1 data 
+    
+    # print the first three columns
+    cut -f1-3 data
+    
+    # print the first and fourth columns
+    cut -f1,4 data
+    
+    # print all columns after the third
+    cut -f4- data
+    
+    # print the first three columns, if '|'-separated
+    cut -d'|' -f1-3 data
+    
+    # print the first five chars on each line
+    cut -c1-5 data
+\end{verbatim}
+
+{\small Unfortunately, there's no way to refer to "last column" without counting the columns.}
+\end{frame}
+
+\begin{frame}
+\frametitle{\textbf{\tt{paste}}: combine files}
+The \textbf{\tt{paste}} command displays several text files "in parallel" on output.
+
+If the inputs are files \textbf{\tt{a}}, \textbf{\tt{b}}, \textbf{\tt{c}}
+\begin{itemize}
+\item  the first line of output is composed of the first lines of \textbf{\tt{a}}, \textbf{\tt{b}}, \textbf{\tt{c}}
+\item  the second line of output is composed of the second lines of \textbf{\tt{a}}, \textbf{\tt{b}}, \textbf{\tt{c}}
+\end{itemize}
+Lines from each file are separated by a tab character or specified delimiter(s).
+
+If files are different lengths, output has all lines from longest file,
+with empty strings for missing lines.
+
+Interleaves lines instead with \textbf{\tt{-s}} (serial) option.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{\tt{paste}}: combine files}
+Example: using \textbf{\tt{paste}} to rebuild a file broken up by \textbf{\tt{cut}}.
+
+\begin{verbatim}
+    # assume "data" is a file with 3 tab-separated columns
+    cut -f1 data > data1
+    cut -f2 data > data2
+    cut -f3 data > data3
+    paste data1 data2 data3 > newdata
+    # "newdata" should look the same as "data"
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{\textbf{\tt{sort}}: sort lines}
+The \textbf{\tt{sort}} command copies input to output but ensures that the
+output is arranged in some particular order of lines.
+
+By default, sorting is based on the first characters in the line.
+
+Other features of \textbf{\tt{sort}}:
+\begin{itemize}
+\item  understands that text data sometimes occurs in delimited fields. \\
+(so, can also sort fields (columns) other than the first {\small (which is the default)})
+\item  can distinguish numbers and sort appropriately
+\item  can ignore punctuation or case differences
+\item  can sort files "in place" as well as behaving like a filter
+\item  capable of sorting {\it{very large}} files
+\end{itemize}
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{\textbf{\tt{sort}}: sort lines}
+Some options:
+
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{-r}}}} ~\end{minipage}
+   & \begin{minipage}{9cm}sort in descending order ({\bf{r}}everse sort)~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{-n}}}} ~\end{minipage}
+   & \begin{minipage}{9cm}sort numerically rather than lexicographically~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{-d}}}} ~\end{minipage}
+   & \begin{minipage}{9cm}dictionary order: ignore non-letters and non-digits~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{-t'}}$c$\textbf{\tt{'}}}} ~\end{minipage}
+   & \begin{minipage}{9cm}use character $c$ to separate columns (default: space)~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{-k}}$n$\textbf{\tt{'}}}} ~\end{minipage}
+   & \begin{minipage}{9cm}sort on column $n$~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+{\small Note: the \textbf{\tt{' '}} around the separator char are usually not necessary,
+but are useful to prevent the shell from mis-interpreting shell meta-characters
+such as \textbf{\tt{'|'}}.}
+
+{\small Hint: to specify TAB as the field delimiter with an interactive shell like bash, type CTRL-v before pressing the TAB key.}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{\tt{sort}}: sort lines}
+Examples:
+\begin{verbatim}
+    # sort numbers in 3rd column in descending order
+    sort -nr -k3 data
+    
+    # sort the password file based on user name
+    sort -t: -k5 /etc/passwd
+     
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{\textbf{\tt{uniq}}: remove or count duplicates}
+The \textbf{\tt{uniq}} command by default removes all but one copy of {\em{adjacent}} identical lines.
+
+Some options:
+
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{-c}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}also print number of times each line is duplicated~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{-d}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}only print (one copy of) duplicated lines~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{-u}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}only print lines that occur uniquely (once only)~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+
+Surprisingly useful tool for summarising data,
+typically after extraction by cut.
+Always preceded by sort (why?).
+\begin{verbatim}
+    # extract first field, sort, and tally
+    cut -f1 data  |  sort  |  uniq -c
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{\textbf{\tt{join}}: database operator}
+
+\textbf{\tt{join}} merges two files using the values in a field
+in each file as a common key.
+
+The key field can be in a different position in each file,
+but the files must be ordered on that field.
+The default key field is 1.
+
+Some options:
+
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-1}} {\it{k}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}key field in first file is {\it{k}}~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-2}} {\it{k}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}key field in second file is {\it{k}}~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-a}} {\it{N}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}print a line for each unpairable line in file {\it{N}} (1 or 2)~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-i}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}ignore case~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{1cm}{\bf{\textbf{\tt{-t}} {\it{c}}}} ~\end{minipage}
+   & \begin{minipage}{18cm}tab character is {\it{c}}~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{\textbf{\tt{join}}: database operator}
+Given these two data files (tab-separated fields)
+\begin{verbatim}
+# data1:                            # data2:
+Bugs Bunny      1953            Warners Bugs Bunny
+Daffy Duck      1948            Warners Daffy Duck
+Donald Duck     1939            Disney  Goofy
+Goofy   1952                    Disney  Mickey Mouse
+Mickey Mouse    1937            Pixar   Nemo
+Nemo    2003
+Road Runner     1949
+\end{verbatim}
+the command \textbf{\tt{join -t'   ' -2 2 -a 1 data1 data2}} gives
+\begin{verbatim}
+Bugs Bunny      1953    Warners
+Daffy Duck      1948    Warners
+Donald Duck     1939
+Goofy   1952    Disney
+Mickey Mouse    1937    Disney
+Nemo    2003    Pixar
+Road Runner     1949
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{\tt{sed}}: stream editor}
+The \textbf{\tt{sed}} command provides the power of interactive-style
+editing in ``filter-mode''.
+
+Invocation:
+\begin{verbatim}
+sed -e 'EditCommands' DataFile
+sed -f EditCommandFile DataFile
+\end{verbatim}
+
+How \textbf{\tt{sed}} works:
+\begin{itemize}
+\item  read each line of input
+\item  check if it matches any patterns or line-ranges
+\item  apply related editing commands to the line
+\item  write the transformed line to output
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{\textbf{\tt{sed}}: stream editor}
+The editing commands are very powerful and subsume the actions of
+many of the filters looked at so far.
+
+In addition, \textbf{\tt{sed}} can:
+\begin{itemize}
+\item  partition lines based on patterns rather than columns
+\item  extract ranges of lines based on patterns or line numbers
+\end{itemize}
+Option \textbf{\tt{-n}} ({\bf{n}}o printing):
+\begin{itemize}
+\item  applies all editing commands as normal
+\item  displays no output, unless \textbf{\tt{p}} appended to edit command
+\end{itemize}
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{\textbf{\tt{sed}}: stream editor}
+Editing commands:
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{p}}}} ~\end{minipage}
+   & \begin{minipage}{8cm}print the current line~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{d}}}} ~\end{minipage}
+   & \begin{minipage}{8cm}delete (don't print) the current line~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{s/}}$RegExp$\textbf{\tt{/}}$Replace$\textbf{\tt{/}}}} ~\end{minipage} \\
+   & \begin{minipage}{8cm}substitute first occurrence of string matching $RegExp$ by $Replace$ string~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{s/}}$RegExp$\textbf{\tt{/}}$Replace$\textbf{\tt{/g}}}} ~\end{minipage} \\
+   & \begin{minipage}{8cm}substitute all occurrences of string matching $RegExp$ by $Replace$ string~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{q}}}} ~\end{minipage}
+   & \begin{minipage}{8cm}terminate execution of \textbf{\tt{sed}}~\end{minipage}
+\end{tabular}
+\end{center}
+
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{\textbf{\tt{sed}}: stream editor}
+All editing commands can be qualified by line addresses or
+line selector patterns to limit lines where command is applied:
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{2cm}{\bf{$LineNo$}} ~\end{minipage}
+   & \begin{minipage}{10cm}selects the specified line~\end{minipage}\\[1ex]
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{$StartLineNo$\textbf{\tt{,}}$EndLineNo$}} ~\end{minipage} \\
+   & \begin{minipage}{10cm}selects all lines between specified line numbers~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{/}}$RegExp$\textbf{\tt{/}}}} ~\end{minipage}
+   & \begin{minipage}{10cm}selects all lines that match $RegExp$~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{2cm}{\bf{\textbf{\tt{/}}$RegExp1$\textbf{\tt{/,/}}$RegExp2$\textbf{\tt{/}}}} ~\end{minipage} \\
+   & \begin{minipage}{10cm}selects all lines between lines matching reg exps~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{\tt{sed}}: stream editor}
+Examples:
+\begin{verbatim}
+# print all lines
+sed -n -e 'p' < file
+
+# print the first 10 lines
+sed -e '10q' < file
+sed -n -e '1,10p' < file
+
+# print lines 81 to 100
+sed -n -e '81,100p' < file
+
+# print the last 10 lines of the file?
+sed -n -e '$-10,$p' < file  # does NOT work
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{\tt{sed}}: stream editor}
+More Examples:
+\begin{verbatim}
+# print only lines containing 'xyz'
+sed -n -e '/xyz/p' < file
+
+# print only lines NOT containing 'xyz'
+sed -e '/xyz/d' < file
+
+# show the passwd file, displaying only the
+# lines from "root" up to "nobody" (i.e. system accounts)
+sed -n -e '/^root/,/^nobody/p' /etc/passwd
+ 
+# remove first column from ':'-separated file
+sed -e 's/[^:]*://' datafile
+
+# reverse the order of the first two columns
+sed -e 's/\([^:]*\):\([^:]*\):\(.*\)$/\2:\1:\3/'
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{\tt{find}}: search for files}
+The \textbf{\tt{find}} commands allows you to search for files based on
+specified properties
+~ {\small (a filter for the file system)}
+\begin{itemize}
+\item  searches an entire directory tree, testing each file for the required property.
+\item  takes some action for all "matching" files
+        {\small (usually just print the file name)}
+\end{itemize}
+Invocation:
+\begin{verbatim}
+    find StartDirectory Tests Actions
+\end{verbatim}
+
+where
+\begin{itemize}
+\item  the $Tests$ examine file properties like name, type, modification date
+\item  the $Actions$ can be simply to print the name or execute an arbitrary command on the matched file
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{\tt{find}}: search for files}
+Examples:
+\begin{verbatim}
+# find all the HTML files below /home/jas/web
+find  /home/jas/web  -name '*.html'  -print
+
+# find all your files/dirs changed in the last 2 days
+find  ~  -mtime -2  -print
+
+# show info on files changed in the last 2 days
+find  ~  -mtime -2  -type f  -exec ls -l {} \;
+
+# show info on directories changed in the last week
+find  ~  -mtime -7  -type d  -exec ls -ld {} \;
+
+# find directories either new or with '07' in their name
+find  ~  -type d  \(  -name '*07*'  -o  -mtime -1  \)  -print
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{\tt{find}}: search for files}
+More Examples:
+\begin{verbatim}
+# find all {\it{new}} HTML files below /home/jas/web
+find  /home/jas/web  -name '*.html'  -mtime -1  -print
+
+# find background colours in my HTML files
+find  ~/web  -name '*.html'  -exec grep -H 'bgcolor' {} \;
+
+# above could also be accomplished via ...
+grep  -r  'bgcolor'  ~/web
+
+# make sure that all HTML files are accessible
+find  ~/web  -name '*.html'  -exec chmod 644 {} \;
+
+# remove any really old files ... Danger!
+find  /hot/new/stuff  -type f  -mtime +364  -exec rm {} \;
+find  /hot/new/stuff  -type f  -mtime +364  -ok rm {} \;
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{Filter summary by type}
+\begin{itemize}
+\item {\em{Horizontal slicing}} - select subset of lines: \\
+	~ ~ ~ \textbf{\tt{cat, head, tail, *grep, sed, uniq}}
+\item {\em{Vertical slicing}} - select subset of columns:
+	~ \textbf{\tt{cut}}, \textbf{\tt{sed}}
+\item {\em{Substitution}}:
+	~ \textbf{\tt{tr}}, \textbf{\tt{sed}} 
+\item {\em{Aggregation, simple statistics}}:
+	~ \textbf{\tt{wc}}, \textbf{\tt{uniq}} 
+\item {\em{Assembly}} - combining data sources:
+	~ \textbf{\tt{paste}}, \textbf{\tt{join}} 
+\item {\em{Reordering}}:
+	~ \textbf{\tt{sort}} 
+\item {\em{Viewing}} (always end of pipeline):
+	~ \textbf{\tt{more}}, \textbf{\tt{less}} 
+\item {\em{File system filter}}:
+	~ \textbf{\tt{find}} 
+\item {\em{Programmable filters}}:
+	~ \textbf{\tt{sed}}, (and \textbf{\tt{perl}})
+\end{itemize}
+\end{frame}
+
+\end{document}

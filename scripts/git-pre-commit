@@ -1,0 +1,9 @@
+#!/bin/sh
+unset CDPATH
+full_pathname="`readlink -f $0`"
+script_dir=`dirname $full_pathname`
+dir=`readlink -f $script_dir/..`
+cd $dir || exit 1
+$script_dir/check_commited_files || exit 1
+$script_dir/build
+exit 0

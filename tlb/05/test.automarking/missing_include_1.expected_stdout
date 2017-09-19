@@ -1,0 +1,3 @@
+fred.h included into fred.c does not exist
+b.h included into fred.c does not exist
+input.h included into fred.c does not exist

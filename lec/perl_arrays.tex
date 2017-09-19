@@ -1,0 +1,398 @@
+\input{include.tex}
+\begin{document}
+\section{Perl - Arrays and Hashes}
+
+\begin{frame}[fragile]
+\frametitle{Arrays (Lists)}
+An {\em{array}} is a sequence of scalars, indexed by position {\small (0,1,2,...)}
+
+The whole array is denoted by ~ \textbf{\tt{@array}}
+
+Individual array elements are denoted by ~
+\textbf{\tt{\$}}array\textbf{\tt{[}}index\textbf{\tt{]}}
+
+\textbf{\tt{\$\#}}array gives the {\it{index of the last element}}.
+
+Example:
+\begin{perl}
+$a[0] = "first string";
+$a[1] = "2nd string";
+$a[2] = 123;
+
+# or, equivalently,
+
+@a = ("first string", "2nd string", 123);
+
+print "Index of last element is $#a\n";
+print "Number of elements is ", $#a+1, "\n";
+\end{perl}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Arrays (Lists)}
+\begin{perl}
+@a = ("abc", 123, 'x');
+
+# numeric context ... gives list length
+$n = @a;         #  $n == 3
+
+# string context ... gives space-separated elems
+$s = "@a";       #  $s eq "abc 123 x"
+
+# scalar context ... gives list length
+$t = @a."";      #  $t eq "3"
+
+# print context ... gives joined elems
+print @a;        #  displays "abc123x"
+\end{perl}
+
+In Perl, interpretation is context-dependent.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Arrays (Lists)}
+Arrays do not need to be declared, and they grow and shrink as needed.
+
+"Missing" elements are interpolated, e.g.
+\begin{perl}
+    $abc[0] = "abc";  $abc[2] = "xyz";
+    # reference to $abc[1] returns ""
+\end{perl}
+
+Can assign {\em{to}} a whole array; can assign {\em{from}} a whole array, e.g.
+\begin{perl}
+    @numbers = (4, 12, 5, 7, 2, 9);
+    ($a, $b, $c, $d) = @numbers;
+\end{perl}
+
+Since assignment of list elements happens in parallel ...
+\begin{perl}
+    ($x, $y) = ($y, $x);   # swaps values of $x, $y}
+\end{perl}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Arrays (Lists)}
+Array {\em{slices}}, e.g.
+\begin{perl}
+@list = (1, 3, 5, 7, 9);
+print "@list[0,2]\n";   # displays "1 5"
+print "@list[0..2]\n";  # displays "1 3 5"
+print "@list[4,2,3]\n"; # displays "9 5 7"
+print "@list[0..9]\n";  # displays "1 3 5 7 9"
+\end{perl}
+
+Array values interpolated into array literals:
+\begin{perl}
+@a = (3, 5, 7);
+@b = @a;           # @b = (3,5,7);
+@c = (1, @a, 9);   # @c = (1,3,5,7,9);
+@a == (@a) == ((@a)) ...
+\end{perl}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Arrays (Lists)}
+Arrays can be accessed element-at-a-time using the \textbf{\tt{for}} loop:
+\begin{perl}
+@nums = (23, 95, 33, 42, 17, 87);
+$sum = 0;
+for ($i = 0; $i < @nums; $i++) {   # @nums gives length
+    $sum += $nums[$i];
+}
+$sum = 0;
+foreach $num (@nums) { sum += $num; }
+\end{perl}
+
+\textbf{\tt{push}} and \textbf{\tt{pop}} act on the "right-hand" end of an array:
+\begin{perl}
+                   # Value of @a
+@a = (1,3,5);      # (1,3,5)
+push @a, 7;        # (1,3,5,7)
+$x = pop @a;       # (1,3,5,7), $x == 7
+$y = pop @a;       # (1,3,5), $y == 5
+\end{perl}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Arrays (Lists)}
+Other useful operations on arrays:
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \textbf{\tt{@b = sort(@a)}} & 
+  ~ & 
+  returns sorted version of \textbf{\tt{@a}}
+\\
+
+  \textbf{\tt{@b = reverse(@a)}} & 
+  ~ & 
+  returns reversed version of \textbf{\tt{@a}}
+\\
+
+  \textbf{\tt{shift(@a)}} & 
+  ~ & 
+  like \textbf{\tt{pop(@a)}}, but from left-hand end
+\\
+
+  \textbf{\tt{unshift(@a,x)}} & 
+  ~ & 
+  like \textbf{\tt{push(@a,x)}}, but at left-hand end
+\\
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Lists as Strings}
+Recall the marks example from earlier on; we used \textbf{\tt{"54,67,88"}} to
+effectively hold a list of marks.
+
+Could we turn this into a real list if e.g. we wanted to compute an average?
+
+The {\em{split}} operation allows us to do this:
+
+Syntax: ~ \textbf{\tt{split(/}}$pattern$\textbf{\tt{/,}}$string$\textbf{\tt{)}} ~ returns a list
+
+The {\em{join}} operation allows us to convert from list to string:
+
+Syntax: ~ \textbf{\tt{join(}}$string$\textbf{\tt{,}}$list$\textbf{\tt{)}} ~ returns a string
+\\{\small (Don't confuse this with the \textbf{\tt{join}} filter in the shell.
+Perl's \textbf{\tt{join}} acts more like \textbf{\tt{paste}}.)}
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Lists as Strings}
+Examples:
+\begin{perl}
+$marks = "99,67,85,48,77,84";
+
+@listOfMarks = split(/,/, $marks);
+# assigns (99,67,85,48,77,84) to @listOfMarks
+
+$sum = 0;
+foreach $m (@listOfMarks) {
+    $sum += $m;
+}
+
+$newMarks = join(':',@listOfMarks);
+# assigns "99:67:85:48:77:84" to $newMarks
+\end{perl}
+
+
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Lists as Strings}
+Complex splits can be achieved by using a full regular expression
+rather than a single delimiter character.
+\\
+If part of the regexp is parenthesised,
+the corresponding part of each delimiter
+is retained in the resulting list.
+\begin{perl}
+split(/[#@]+/,'ab##@#c#d@@e');  #gives (ab,c,d,e)
+split(/([#@]+)/,'ab##@#c#d@@e');#gives (ab,##@#,c,#,d,@@,e)
+split(/([#@])+/,'ab##@#c#d@@e');#gives (ab,#,c,#,d,@,e)
+\end{perl}
+
+
+And as a specially useful case, the empty regexp
+is treated as if it matched between every character,
+splitting the string into a list of single characters:
+
+\begin{perl}
+    split(//, 'hello'); # gives (h, e, l, l, o)
+\end{perl}
+
+
+\end{frame}
+\begin{frame}[fragile,shrink]
+\frametitle{Associative Arrays (Hashes)}
+As well as arrays indexed by numbers, Perl supports arrays indexed by
+strings: {\em{hashes}}.
+
+Conceptually, as hash is a set {\small (not list)} of $(key,value)$ pairs.
+
+We can deal with an entire hash at a time via \textbf{\tt{\%}}$hashName$, e.g.
+\begin{perl}
+         #  Key      Value
+
+ %days = ( "Sun" => "Sunday",
+           "Mon" => "Monday",
+           "Tue" => "Tuesday",
+           "Wed" => "Wednesday",
+           "Thu" => "Thursday",
+           "Fri" => "Friday",
+           "Sat" => "Saturday" );
+\end{perl}
+
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Associative Arrays (Hashes)}
+Individual components of a hash are accessed via \textbf{\tt{\$}}$hashName$\textbf{\tt{\{}}$keyString$\textbf{\tt{\}}}
+
+Examples:
+\begin{perl}
+$days{"Sun"}   # returns "Sunday"
+$days{"Fri"}   # returns "Friday"
+$days{"dog"}   # is undefined (interpreted as "")
+$days{0}       # is undefined (interpreted as "")
+
+# inserts a new (key,value)
+$days{dog} = "Dog Day Afternoon";   # bareword OK as key
+
+# replaces value for key "Sun"
+$days{"Sun"} = Soonday;             # bareword OK as value
+\end{perl}
+
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Associative Arrays (Hashes)}
+Consider the following two assignments:
+\begin{perl}
+@f = ("John", "blue", "Anne", "red", "Tim", "pink");
+%g = ("John" => "blue", "Anne" => "red", "Tim" => "pink");
+\end{perl}
+
+
+The first produces an array of strings that can be accessed via position,
+such as \textbf{\tt{\$f[0]}}
+
+The second produces a lookup table of names and colours, e.g. \textbf{\tt{\$g\{"Tim"\}}}.
+\\(In fact the symbols \textbf{\tt{=>}} and comma have identical meaning in a list,
+so either right-hand side could have been used.
+However, always use the arrow form exclusively for hashes.)
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Associative Arrays (Hashes)}
+Consider iterating over each of these data structures:
+
+\begin{center}
+
+\begin{center}
+\begin{tabular}{lll}
+
+\begin{minipage}{4cm}
+\begin{perl}
+foreach $x (@f) {
+    print "$x\n";
+}
+
+John
+blue
+Anne
+red
+Tim
+pink
+\end{perl}
+
+ ~\end{minipage}
+ & \begin{minipage}{19cm}
+\begin{perl}
+foreach $x (keys %g) {
+   print "$x => $g{$x}\n";
+}
+
+Anne => red
+Tim => pink
+John => blue
+
+
+
+\end{perl}
+
+~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+\end{center}
+The data comes out of the hash in a fixed but arbitrary order
+(due to the hash function).
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Associative Arrays (Hashes)}
+There are several ways to examine the $(key,value)$ pairs
+in a hash:
+\begin{perl}
+foreach $key (keys %myHash) {
+    print "($key, $myHash{$key})\n";
+}
+\end{perl}
+
+
+or, if you just want the values without the keys
+\begin{perl}
+foreach $val (values %myHash) {
+    print "(?, $val)\n";
+}
+\end{perl}
+
+
+or, if you want them both together
+\begin{perl}
+while (($key,$val) = each %myHash) {
+    print "($key, $val)\n";
+}
+\end{perl}
+
+
+Note that each method produces the keys/values in the same order.
+It's illegal to change the hash within these loops.
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Associative Arrays (Hashes)}
+Example (collecting marks for each student):
+\begin{itemize}
+\item  a data file of $(name,mark)$ pairs, space-separated, one per line
+\item  out should be $(name,marksList)$, with comma-separated marks
+\end{itemize}
+\begin{perl}
+while (<>) {
+    chomp;    # remove newline
+    ($name, $mark) = split;    # separate data fields
+    $marks{$name} .= ",$mark"; # accumulate marks
+}
+foreach $name (keys %marks) {
+    $marks{$name} =~ s/,//;    # remove comma prefix
+    print "$name $marks{$name}\n";
+}
+\end{perl}
+
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Associative Arrays (Hashes)}
+The \textbf{\tt{delete}} function removes an entry (or entries) from an associative array.
+
+To remove a single pair:
+\begin{perl}
+delete $days{"Mon"};  # "I don't like Mondays"
+\end{perl}
+
+
+To remove multiple pairs:
+\begin{perl}
+delete @days{ ("Sat","Sun") };  # Oh noes - no weekend!
+\end{perl}
+
+
+To clean out the entire hash:
+\begin{perl}
+foreach $d (keys %days) { delete $days{$d}; }
+# or, more simply
+%days = ();
+\end{perl}
+
+\end{frame}
+\end{document}

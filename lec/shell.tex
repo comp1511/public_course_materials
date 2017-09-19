@@ -1,0 +1,721 @@
+\input{include.tex}
+\begin{document}
+\section{Shells and Scripting}
+\begin{frame}
+\frametitle{Command Interpreters}
+A {\em{command interpreter}} is a program that executes other programs.
+
+Aim: allow users to execute the commands provided on a computer system.
+
+Command interpreters come in two flavours:
+\begin{itemize}
+\item  graphical ~ (e.g. Windows or Mac desktop)
+\begin{itemize}
+\item  advantage: easy for naive users to start using system
+\end{itemize}
+\item  command-line ~ (e.g. Unix shell)
+\begin{itemize}
+\item  advantage: programmable, powerful tool for expert users
+\end{itemize}
+\end{itemize}
+On Unix/Linux, \textbf{\tt{bash}} has become defacto standard shell.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{What Shells Do}
+All Unix shells have the same basic mode of operation:
+\begin{verbatim}
+    loop
+       if (interactive) print a prompt
+       read a line of user input
+       apply transformations to line
+       split line into words (/\s+/)
+       use first word in line as command name
+       execute that command,
+          using other words as arguments
+    end loop
+\end{verbatim}
+
+Note that "\textbf{\tt{line of user input}}" could be a line from a file.
+
+In that case, the shell is reading a "script" of commands
+and acting as a kind of programming language interpreter.
+\end{frame}
+
+\begin{frame}
+\frametitle{What Shells Do}
+The "\textbf{\tt{transformations}}" applied to input lines include:
+\begin{itemize}
+\item  variable expansion ... e.g. ~ \textbf{\tt{\$1  \$\{x-20\}}}
+\item  file name expansion ... e.g. ~ \textbf{\tt{*.c  enr.07s?}}
+\end{itemize}
+To "\textbf{\tt{execute that command}}" the shell needs to:
+\begin{itemize}
+\item  find file containing named program ~ ({\em{\textbf{\tt{PATH}}}})
+\item  start new process for execution of program
+\end{itemize}
+\end{frame}
+
+\begin{frame}[shrink,fragile]
+\frametitle{Command Search PATH}
+
+If we have a script called {\tt{bling}} in the current directory,
+we might be able to execute it with any of these:
+
+\begin{sh}
+$ sh bling   # file need not be executable
+$ ./bling    # file must be executable
+$ bling      # file must be executable and . in PATH
+\end{sh}
+
+Shell searches for programs to run
+using the colon-separated list of directories in the variable {\tt{PATH}}.
+Beware: only append the current directory to end of your path, e.g:
+
+\begin{sh}
+$ PATH=.:$PATH
+$ cat >cat <<eof
+#!/bin/sh
+echo miaou
+eof
+$ chmod 755 cat
+$ cat /home/cs2041/public_html/index.html
+miaou
+$
+\end{sh}
+
+
+Note ./cat is being run rather /bin/cat
+
+Much hard to discover if it happens with
+another shell script which runs cat.  Safer still: don't put  .  in your PATH.
+\end{frame}
+
+\begin{frame}
+\frametitle{Unix Processes}
+A Unix process executes in this environment
+
+
+	\begin{figure}
+    	\centering
+    	\includegraphics[width = 0.9\textwidth]{Pic/unixproc}
+    	% \caption{Caption}
+  	\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Unix Processes: C Program View}
+Components of process environment {\small (C programmer's view)}:
+\begin{itemize}
+\item  \textbf{\tt{char *argv[]}} - command line "words"
+\item  \textbf{\tt{int argc}} - size of \textbf{\tt{argv[]}}
+\item  \textbf{\tt{char *env[]}} - \textbf{\tt{name=value}} pairs from shell
+\item  \textbf{\tt{FILE *stdin}} - input byte-stream, e.g. \textbf{\tt{getchar()}}
+\item  \textbf{\tt{FILE *stdout}} - output byte-stream, e.g. \textbf{\tt{putchar()}}
+\item  \textbf{\tt{FILE *stderr}} - output byte-stream, e.g. \textbf{\tt{fputc(c, stderr)}}
+\item  \textbf{\tt{exit(int)}} - terminate program, set exit status
+\item  \textbf{\tt{return int}} - terminate \textbf{\tt{main()}}, set exit status
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Shell as Interpreter}
+The shell can be viewed as a programming language interpreter.
+
+As with all interpreters, the shell has:
+\begin{itemize}
+\item  a state ~ (collection of variables and their values)
+\item  control ~ (current location, execution flow)
+\end{itemize}
+Different to most interpreters, the shell:
+\begin{itemize}
+\item  modifies the program code before finally executing it
+\item  has an infinitely extendible set of basic operations
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Shell as Interpreter}
+Basic operations in shell scripts are a sequence of {\em{words}}.
+\begin{verbatim}
+    CommandName  Arg1  Arg2  Arg3  ...
+\end{verbatim}
+
+
+A {\em{word}} is defined to be any sequence of:
+\begin{itemize}
+\item non-whitespace characters (e.g. \textbf{\tt{x, y1, aVeryLongWord}})
+\item characters enclosed in double-quotes (e.g. \textbf{\tt{"abc", "a b c"}})
+\item characters enclosed in single-quotes (e.g. \textbf{\tt{'abc', 'a b c'}})
+\end{itemize}
+We discuss the different kinds of quote later.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Shell Scripts}
+Consider a file called "\textbf{\tt{hello}}" containing
+\begin{sh}
+#!/bin/sh
+
+echo Hello, World
+\end{sh}
+
+How do we execute it?
+
+\begin{sh}
+$ sh hello           # execute the script
+\end{sh}
+
+or
+
+\begin{sh}
+$ chmod +x hello     # make the file executable
+$ ./hello            # execute the script
+\end{sh}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Shell Scripts}
+The next simplest shell program: "Hello, {\it{YourName}}"
+\begin{sh}
+#!/bin/sh
+
+echo -n "Enter your name: "
+read name
+echo Hello, $name
+\end{sh}
+
+Shell variables:
+
+\begin{sh}
+$ read x     # read a value into variable x
+$ y=John     # assign a value to variable y
+$ echo $x    # display the VALUE of variable x
+$ z="$y $y"  # assign two copies of y to variable z
+\end{sh}
+
+
+{\small Note: spaces matter ... do {\it{not}} put spaces around the \textbf{\tt{=}} symbol.}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Shell Variables}
+More on shell variables:
+
+\begin{itemize}
+\item  no need to declare shell variables; simply use them
+\item  are local to the current execution of the shell.
+\item  all variables have type string
+\item  initial value of variable = empty string
+\item  note that ~ \textbf{\tt{x=1}} ~ is equivalent to ~ \textbf{\tt{x="1"}}
+\end{itemize}
+
+Examples:
+
+\begin{sh}
+$ x=5
+$ y="6"
+$ z=abc
+$ echo $(( $x + $y ))
+11
+$ echo $(( $x + $z ))
+5
+\end{sh}
+
+\end{frame}
+
+\begin{frame}[shrink,fragile]
+\frametitle{Shell Variables}
+\begin{sh}
+$ x=1
+$ y=fred
+$ echo $x$y
+1fred
+$ echo $xy        # the aim is to display "1y"
+
+$ echo "$x"y
+1y
+$ echo ${x}y
+1y
+$ echo ${j-10}    # give value of j or 10 if no value
+10
+$ echo ${j=33}    # set j to 33 if no value (and give $j)
+33
+$ echo ${x:?No Value}   # display "No Value" if $x not set
+1
+$ echo ${xx:?No Value}  # display "No Value" if $xx not set
+-bash: xx: No Value
+\end{sh}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Shell Scripts}
+Some shell built-in variables with pre-assigned values:
+\begin{center}
+\begin{tabular}{ll}
+ \textbf{\tt{\$0}}  &   the name of the command  \\
+ \textbf{\tt{\$1}}  &   the first command-line argument  \\
+ \textbf{\tt{\$2}}  &   the second command-line argument  \\
+ \textbf{\tt{\$3}}  &   the third command-line argument  \\
+ \textbf{\tt{\$\#}}  &   count of command-line arguments  \\
+ \textbf{\tt{\$*}}  &   all of the command-line arguments (together) \\
+ \textbf{\tt{\$@}}  &   all of the command-line arguments (separately) \\
+ \textbf{\tt{\$?}}  &   exit status of the most recent command \\
+ \textbf{\tt{\$\$}}  &   process ID of this shell \\
+\end{tabular}
+\end{center}
+The last one is useful for generating unique filenames.
+\end{frame}
+
+\begin{frame}
+\frametitle{Shell Pathname Expansion}
+
+If a string contains any of  \textbf{\tt{* ? []}}
+it is  matched against pathnames.
+
+\begin{itemize}
+\item  \textbf{\tt{*}} matches zero or more of any character
+\item  \textbf{\tt{?}} matches  any  one character
+\item  \textbf{\tt{[]}} matches  any  one character between the []
+\end{itemize}
+
+The string is replaced with all matching pathnames.
+
+If no matches the string is left unchanged (usually configurable)
+\end{frame}
+
+\begin{frame}
+\frametitle{Shell Scripts}
+Tip: debugging for shell scripts
+\begin{itemize}
+\item  the shell transforms commands before executing
+\item  can be useful to know what commands are executed
+\item  can be useful to know what transformations produced
+\item  \textbf{\tt{set -x}} shows each command after transformation
+\end{itemize}
+i.e. execution trace
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{Quoting}
+Quoting can be used for three purposes in the shell:
+\begin{itemize}
+\item  to group a sequence of words into a single "word"
+\item  to control the kinds of transformations that are performed
+\item  to capture the output of commands (back-quotes)
+\end{itemize}
+The three different kinds of quotes have three different effects:
+\begin{center}
+
+\begin{center}
+\begin{tabular}{lll}
+
+  \begin{minipage}{3cm}single-quote (\textbf{\tt{'}}) ~\end{minipage}
+   & \begin{minipage}{17cm}grouping, turns off all transformations~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{3cm}double-quote (\textbf{\tt{"}}) ~\end{minipage}
+   & \begin{minipage}{17cm}grouping, no transformations except \textbf{\tt{\$}} and \textbf{\tt{`}}~\end{minipage}
+\\[1ex]
+
+  \begin{minipage}{3cm}backquote ({\em{\textbf{\tt{`}}}}) ~\end{minipage}
+   & \begin{minipage}{17cm}no grouping, capture command results~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Quoting}
+Single-quotes are useful to pass shell meta-characters in args:
+e.g. ~ \textbf{\tt{grep 'S.*[0-9]+\$' < myfile}}
+
+Use double-quotes to
+\begin{itemize}
+\item  construct strings using the values of shell variables 
+
+{\small e.g. ~ \textbf{\tt{"x=\$x, y=\$y"}} ~~ like Java's ~~ \textbf{\tt{("x=" + x + ", y=" + y)}}}
+\item  prevent empty variables from "vanishing" \\
+
+{\small e.g. ~ use ~ \textbf{\tt{test "\$x" = "abc"}} ~ rather than ~ \textbf{\tt{test \$x = "abc"}} ~ in case \textbf{\tt{\$x}} is empty}
+\item  for values obtained from the command line or a user
+
+{\small e.g. ~ use ~ \textbf{\tt{test -f "\$1" }} ~ rather than ~ \textbf{\tt{test -f \$1}} ~ in case \\
+	\textbf{\tt{\$1}} contains a path with spaces e.g. \textbf{\tt{C:/Program Files/app/data}}}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Back-quotes}
+Back-quotes capture the output of commands as shell values.
+
+For \textbf{\tt{`}}{\it{Command}}\textbf{\tt{`}}, the shell:
+\begin{enumerate}
+\item  performs variable-substitution (as for double-quotes)
+\item  executes the resulting command and arguments
+\item  captures the standard output from the command
+\item  converts it to a single string
+\item  uses this string as the value of the expression
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Back-quotes}
+Example: convert GIF files to PNG format.
+
+Original and converted files share the same prefix \\
+(e.g. \textbf{\tt{/x/y/abc.gif}} is converted to \textbf{\tt{/x/y/abc.png}})
+\begin{sh}
+#!/bin/sh
+# ungif - convert gifs to PNG format
+
+for f in "$@"
+do
+    dir=`dirname "$f"`
+    prefix=`basename "$f" .gif`
+    outfile="$dir/$prefix.png"
+    giftopnm "$f" | pnmtopng > "$outfile"
+done
+\end{sh}
+
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{Connecting Commands}
+The shell provides {\em{I/O redirection}} to allow us to change
+where processes read from and write to.
+
+
+\begin{center}
+\begin{tabular}{lll}
+
+   \begin{minipage}{3cm}\textbf{\tt{< infile}} ~\end{minipage}
+    & \begin{minipage}{18cm}connect \textbf{\tt{stdin}} to the file \textbf{\tt{infile}}~\end{minipage}
+\\[1ex]
+
+   \begin{minipage}{3cm}\textbf{\tt{> outfile}} ~\end{minipage}
+    & \begin{minipage}{18cm}connect \textbf{\tt{stdout}} to the file \textbf{\tt{outfile}}~\end{minipage}
+\\[1ex]
+
+   \begin{minipage}{3cm}\textbf{\tt{>> outfile}} ~\end{minipage}
+    & \begin{minipage}{18cm}apppend \textbf{\tt{stdout}} to the file \textbf{\tt{outfile}}~\end{minipage}
+\\[1ex]
+
+   \begin{minipage}{3cm}\textbf{\tt{2> outfile}} ~\end{minipage}
+    & \begin{minipage}{18cm}connect \textbf{\tt{stderr}} to the file \textbf{\tt{outfile}}~\end{minipage}
+\\[1ex]
+
+   \begin{minipage}{3cm}\textbf{\tt{2>\&1 > outfile}} ~\end{minipage}
+    & \begin{minipage}{18cm}connect \textbf{\tt{stderr}}+\textbf{\tt{stdout}} to \textbf{\tt{outfile}} ~\end{minipage}
+\\[1ex]
+\end{tabular}
+\end{center}
+
+Beware: \textbf{\tt{>}} truncates file before executing command.
+
+Always have backups!
+\end{frame}
+
+\begin{frame}
+\frametitle{Connecting Commands}
+Many commands accept list of input files:
+
+E.g. ~ \textbf{\tt{cat file1 file2 file3}} \\
+
+These commands also typically adopt the conventions:
+\begin{itemize}
+\item  read contents of \textbf{\tt{stdin}} if no filename arguments
+\item  treat the filename \textbf{\tt{-}} as meaning \textbf{\tt{stdin}}
+\end{itemize}
+
+E.g. ~ \textbf{\tt{cat -n < file}} ~ and ~ \textbf{\tt{cat a - b - c}} \\
+
+If a command does not allow the use of multiple files as input, use:
+
+E.g. ~ \textbf{\tt{cat file1 file2 file3 | Command}}
+\end{frame}
+
+\begin{frame}
+\frametitle{Connecting Commands}
+The shell sets up the environment for each command in a pipeline and
+connects them together:
+
+
+	\begin{figure}
+    	\centering
+    	\includegraphics[width = 0.9\textwidth]{Pic/pipeline}
+    	% \caption{Caption}
+  	\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Exit Status and Control}
+Process exit status is used for control in shell scripts:
+\begin{itemize}
+\item  zero exit status means command successful $\rightarrow$ true
+\item  non-zero exit status means error occurred $\rightarrow$ false
+\end{itemize}
+Mostly, exit status is simply ignored ~ {\small (e.g. when interactive)}
+
+One application of exit statuses:
+\begin{itemize}
+\item  AND lists ~~ $cmd_{1}$
+	\textbf{\tt{\&\&}}
+	$cmd_{2}$
+	\textbf{\tt{\&\& ... \&\&}}
+	$cmd_{n}$ \\
+	{\small ($cmd_{i+1}$ is executed only if $cmd_{i}$ succeeds (zero exit status))}
+\item  OR lists ~~ $cmd_{1}$ \textbf{\tt{||}} $cmd_{2}$ \textbf{\tt{|| ... ||}} $cmd_{n}$ \\
+	{\small ($cmd_{i+1}$ is executed only if $cmd_{i}$ fails (non-zero exit status))}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Testing}
+The \textbf{\tt{test}} command performs a test or combination of tests and:
+\begin{itemize}
+\item  returns a zero exit status if the test succeeds
+\item  returns a non-zero exit status if the test fails
+\end{itemize}
+Provides a variety of useful testing features:
+\begin{itemize}
+\item  string comparison ~ ( \textbf{\tt{=  !=}} )
+\item  numeric comparison ~ ( \textbf{\tt{-eq  -ne  -lt}} )
+\item  checks on files ~ ( \textbf{\tt{-f  -x  -r}} )
+\item  boolean operators ~ ( \textbf{\tt{-a  -o  !}} )
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Testing}
+Examples:
+\begin{sh}
+# does the variable msg have the value "Hello"?
+test "$msg" = "Hello"
+
+# does x contain a numeric value larger than y?
+test "$x" -gt "$y"
+
+# Error: expands to "test hello there = Hello"?
+msg="hello there"
+test $msg = Hello
+
+# is the value of x in range 10..20?
+test "$x" -ge 10 -a "$x" -le 20
+
+# is the file xyz a readable directory?
+test -r xyz -a -d xyz
+
+# alternative syntax; requires closing ]
+[ -r xyz -a -d xyz ]
+\end{sh}
+
+{\small Note: use of quotes, spaces around values/operators}
+\end{frame}
+
+\begin{frame}
+\frametitle{Sequential Execution}
+Combine commands in pipelines and AND and OR lists.
+
+Commands executed sequentially if separated by semicolon or newline.
+
+$cmd_{1}$ ; $cmd_{2}$ ; ... ; $cmd_{n}$
+
+$cmd_{1}$
+
+$cmd_{2}$
+
+...
+
+$cmd_{n}$
+\end{frame}
+
+\begin{frame}[shrink,fragile]
+\frametitle{Grouping}
+Commands can be grouped using \textbf{\tt{ ( ... ) }} or \textbf{\tt{ \{ ... \} }}
+
+\textbf{\tt{(}}$cmd_{1}$ \textbf{\tt{; ...}} $cmd_{n}$) \textbf{\tt{}} are executed in a new sub-shell.
+
+\textbf{\tt{\{}}$cmd_{1}$ \textbf{\tt{; ...}} $cmd_{n}$ \textbf{\tt{\}}} are executed in the current shell.
+
+Exit status of group is exit status of last command.
+
+Beware: state of sub-shell (e.g. \textbf{\tt{\$PWD}}, other variables) is lost after \textbf{\tt{(...)}},
+hence
+\begin{sh}
+$ cd /usr/share
+$ x=123
+$ ( cd $HOME;  x=abc; )
+$ echo $PWD $x
+/usr/share 123
+$ { cd $HOME;  x=abc; }
+$ echo $PWD $x
+/home/cs2041 abc
+\end{sh}
+
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{If Command}
+The \textbf{\tt{if-then-else}} construct allows conditional execution:
+\begin{sh}
+if testList{1}
+then
+   commandList{1}
+elif testList{2}
+then
+   commandList{2}
+   ...
+else
+   commandList{n}
+fi
+\end{sh}
+
+Keywords \textbf{\tt{if}}, \textbf{\tt{else}} etc, are only recognised
+at the start of a command (after newline or semicolon).
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{If Command}
+Examples:
+\begin{sh}
+# Check whether a file is readable
+
+if [ -r $HOME ]     # neater than:  if test -r $HOME
+then
+   echo "$0: $HOME is readable"
+fi
+
+# Test whether a user exists in passwd file
+
+if grep "^$user" /etc/passwd > /dev/null
+then
+    # do something if they do exist ...
+else
+   echo "$0: $user does not exist"
+fi
+\end{sh}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Case command}
+\textbf{\tt{case}} provides multi-way choice based on patterns:
+\begin{sh}
+case word in
+pattern{1})  commandList{1} ;;
+pattern{2}-2)  commandList{2}-2 ;;
+...
+pattern{n})  commandList{n} ;;
+esac
+\end{sh}
+
+The $word$ is compared to each $pattern_{i}$ in turn.
+
+For the first matching pattern, corresponding $commandList_{i}$
+is executed and the statement finishes.
+
+Patterns are those used in filename expansion ~ ( \textbf{\tt{* ? []}} ).
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Case command}
+Examples:
+\begin{sh}
+# Checking number of command line args
+
+case $# in
+0)  echo "You forgot to supply the argument" ;;
+1)  ... process the argument ...  ;;
+*)  echo "You supplied too many arguments" ;;
+esac
+
+# Classifying a file via its name
+
+case "$file" in
+*.c)  echo "$file looks like a C source-code file" ;;
+*.h)  echo "$file looks like a C header file" ;;
+*.o)  echo "$file looks like a an object file" ;;
+...
+?)    echo "$file's name is too short to classify" ;;
+*)    echo "I have no idea what $file is" ;;
+esac         
+\end{sh}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Loop commands}
+\textbf{\tt{while}} loops iterate based on a test command list:
+\begin{sh}
+while testList
+do
+   commandList
+done
+\end{sh}
+
+\textbf{\tt{for}} loops set a variable to successive words from a list:
+\begin{sh}
+for var in wordList
+do
+   commandList  # ... generally involving var
+done
+\end{sh}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Loop commands}
+Examples of \textbf{\tt{while}}:
+\begin{sh}
+# Check the system status every ten minutes
+
+while true
+do
+   uptime ; sleep 600
+done
+
+# Interactively prompt the user to process files
+
+echo -n "Next file: "
+while read filename
+do
+   process < "$filename" >> results
+   echo -n "Next file: "
+done
+\end{sh}
+
+\end{frame}
+
+\begin{frame}[fragile,shrink]
+\frametitle{Loop commands}
+Examples of \textbf{\tt{for}}:
+\begin{sh}
+# Compute sum of a list of numbers from command line
+
+sum=0
+for n in "$@"    # use "$@" to preserve args
+do
+   sum=`expr $sum + "$n"`
+done
+
+# Process files in $PWD, asking for confirmation
+
+for file in *
+do
+   echo -n "Process $file? "
+   read answer
+   case "$answer" in
+      [yY]*) process < $file >> results ;;
+      *)     ;;
+   esac
+done
+\end{sh}
+
+\end{frame}
+
+\end{document}

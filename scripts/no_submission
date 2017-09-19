@@ -1,0 +1,16 @@
+#!/bin/sh
+. $(dirname $(readlink -f $0))/config.sh
+
+cd "$WORK" || exit 1
+submissions=/tmp/submission.$$
+touch -m 600 $submissions || exit 1
+trap 'rm -fr $submissions' EXIT
+
+find "$@" -name submission.tar |cut -d/ -f3|sort|uniq >/tmp/submission.$$
+name -p lab_exemption|cut -f1,4|grep -i y|cut -f1 >>/tmp/submission.$$
+egrep -ai "$course_code_regex" /home/teachadmin/public_html/data/enrollments/${unsw_session}_COMP|
+	cut -d\| -f2|
+	fgrep -v -f $submissions|
+	sed 's/^/z/;s/$/@unsw.edu.au/' |
+	tr '\n' ,
+

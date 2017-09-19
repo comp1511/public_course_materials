@@ -1,0 +1,3 @@
+Aug 16
+shell plagiarism_detection.reordering.sh plagiarism_detection.md5_hash.sh
+perl_intro pythagoras.pl sum_stdin.pl line_chars.pl snap_consecutive.pl exponential_concatenation.pl echo.0.pl echo.1.pl echo.2.pl 

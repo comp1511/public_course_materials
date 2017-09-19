@@ -1,0 +1,153 @@
+#!/bin/bash
+
+#
+# Run automarking for an individual student
+#
+# Invoked by one of
+# a) automark_assignment
+# b) give generated scripts
+# c) command line
+#
+# Expects files in one of
+#
+# a) tar file specified as first argument
+# b) CSE gitlab repo commit specified as  arguments
+
+. $(dirname $(readlink -f $0))/config.sh
+
+case "$#" in
+0)  ;;
+1)
+	# run from command line 
+    case "$1" in
+    [0-9][0-9][0-9][0-9][0-9][0-9][0-9])
+        tar_file="`ls $1/submission.tar */$1/submission.tar 2>/dev/null|sed 1q`";;
+    *)
+        tar_file="$1";;
+    esac
+    
+    case "$tar_file" in
+    /*) ;;
+    ?*) tar_file=`readlink -f "$tar_file"`
+    esac
+    
+    if test -n "$tar_file"
+    then
+        submission_dir=`dirname "$tar_file"`
+    elif test -n "$S"
+    then
+        submission_dir="$S"
+    else
+        echo Internal error no argument 1>&2
+        exit 1
+    fi
+    
+    assignment_dir=`dirname "$submission_dir"`
+    assignment_dir=`dirname "$assignment_dir"`
+    assignment=`basename "$assignment_dir"`
+    student=`basename "$submission_dir"`
+    ;;
+    
+*)  assignment=$1
+    student=`echo $2|sed 's/^z//'`
+    repo="gitlab@gitlab.cse.unsw.EDU.AU:z$student/$unsw_session-$course_code_lower_case-$assignment"
+    commit="$3"
+    assignment_dir=$WORK/$assignment
+esac
+
+if test -z "$TESTFILE_DIR"
+then
+	TESTFILE_DIR=$assignment_dir/tests/
+	test -r "$TESTFILE_DIR/PROGRAMS"|| test -r "$TESTFILE_DIR/tests.txt"  || test -r "$TESTFILE_DIR/WRITTEN_QUESTION" || TESTFILE_DIR="$public_html_session_directory/assignments/$assignment/tests"
+fi
+
+temp_dir=/tmp/automark_student$$ 
+trap 'cd /;rm -fr $temp_dir' EXIT
+mkdir -m 700 $temp_dir || { echo Unable to create a $temp_dir >&2; exit 1; }
+
+if test -n "$tar_file"
+then
+    tar -C $temp_dir -xf "$tar_file" || { echo Unable to untar assignment >&2; exit 1; }
+elif test ! -n "$repo"
+then
+    rsync -a ./   $temp_dir/
+fi
+
+cd $temp_dir
+if test -n "$repo"
+then
+    if test -n "$commit"
+    then
+        echo clone "$repo" .
+        git clone "$repo" . || exit 1
+        echo git checkout  "$commit"
+        git checkout  "$commit" || exit 1
+    else
+        echo git clone --depth 1 "$repo" .
+        git clone --depth 1 "$repo" . || exit 1
+    fi
+fi
+
+for tf in *.tar
+do
+    case "$tf" in
+    '*.tar'|git.tar|submission.tar|sub?.tar|tmp.tar|updated.tar|preedit.tar) ;;
+    *) tar xf "$tf"
+    esac
+done
+
+test -n "$submission_dir" && rsync -a "$submission_dir/"  ./
+test -d "$TESTFILE_DIR" && rsync -a "$TESTFILE_DIR/" ./
+
+if test -d .submissions
+then
+    question=`echo $assignment|perl -p -e 's/.*q(\d+).*/\1/;s/\D//g'`
+    if test -e WRITTEN_QUESTION
+    then
+        $scripts_directory/extract_written_question_for_marking $question >q$question.txt || exit 0
+        cat q$question.txt
+        test -r ANSWER_REGEX && $scripts_directory/match_written_answer q$question.txt
+        if test -r PROGRAMS
+        then
+            dest=`sed 1q PROGRAMS`
+            echo '#!/bin/sh' >$dest
+            grep -v '^---' q$question.txt >>$dest
+            chmod 750 $dest
+        fi
+    else
+        extract_prac_question_for_marking $WORK/exam_files/`cat SESSION`/$student
+    fi
+fi
+
+test -e $TESTFILE_DIR/tests.txt || exit 0
+
+if test -n "$submission_dir" && test -d "$submission_dir/repo" 
+then
+	for program in `cat  $TESTFILE_DIR/PROGRAMS`
+	do
+		# program may contain shell glob characters, e.g q1.*
+		ls $program >/dev/null 2>&1 && continue
+		ls "$submission_dir/repo"/$program >/dev/null 2>&1 || continue
+		cp -p "$submission_dir/repo"/$program .
+		echo Using  $program from previous submission
+	done
+fi
+
+$public_html_session_directory/lib/python/cse/autotest.py --no_show_input --no_show_expected --no_fail_tests_for_errors --show_stdout_if_errors --no_show_reproduce_command --no_check_hash_bang_line --autotest_directory $TESTFILE_DIR
+
+
+exit_status=$?
+cd /
+rm -fr $temp_dir
+
+# autotest exit_status == 0 -> all tests worked
+# autotest exit_status == 1 -> 1 or more tests failed
+# autotest exit_status >- 2, internal error - testing not completed
+
+# automark_student  exit_status == 0 -> testing completed
+# automark_student  exit_status == 1 -> testing not completed
+
+case "$exit_status" in
+0|1) exit 0;;
+*) exit $exit_status
+esac

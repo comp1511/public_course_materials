@@ -1,0 +1,4 @@
+b.h included into a.c does not exist
+input.h included into a.c does not exist
+b.h included into b.c does not exist
+d.h included into b.c does not exist

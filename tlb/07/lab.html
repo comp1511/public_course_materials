@@ -1,0 +1,315 @@
+{% set programs = "total_words.pl count_word.pl frequency.pl log_probability.pl identify_artist.pl total_words.py count_word.py frequency.py log_probability.py identify_artist.py" %}
+{% extends "templates/lab.html" %}
+{% block objectives %}
+<ul>
+<li>
+Proficiency at text processing in Perl.
+<li>
+Understanding multi-dimensional hashes.
+<li>
+Explore a simple learning algorithm.
+</li></li></li></ul>
+{% endblock %}
+
+{% block lab_exercises %}
+
+<h3>Perl</h3>
+
+We have covered only a small amount of Perl in lectures. In fact, to
+cover the whole language in detail would take a whole semester, so
+we're going to rely on you finding out about the language yourself
+in tutes, labs and assignments. A good place to start is
+the Perl documentation &amp; tutorial links on the class home page
+For example you might find these useful:
+
+<ul>
+<li> <a href="http://search.cpan.org/dist/perl/pod/perlsyn.pod" target="doc">Perl language syntax</a>
+<li> <a href="http://search.cpan.org/dist/perl/pod/perlsub.pod" target="doc">Perl functions</a>
+<li> <a href="http://search.cpan.org/dist/perl/pod/perlop.pod" target="doc">Perl operators</a>
+</li></li></li></ul>
+<h3>Introduction</h3>
+
+In this lab you will write a Perl program which given the lyrics of a song, prints who the artist is.
+You will use a <a href="http://en.wikipedia.org/wiki/Naive_Bayes_classifier#Document_Classification">Naive Bayes Document classifier</a> to do this.
+Naive Bayes Document classifiers are used widely for applications such as spam filtering and
+language recognition.
+
+<h3>Dataset</h3>
+
+This <a href="{{directory_url}}lyrics.zip">zip file</a> contains
+the lyrics of the songs of 10 well known artists.
+
+<pre class="command_line">
+<kbd class="shell">wget -q {{directory_url}}lyrics.zip</kbd>
+<kbd class="shell">unzip lyrics.zip</kbd>
+Archive:  lyrics.zip
+   creating: lyrics/
+  inflating: lyrics/David_Bowie.txt
+  inflating: lyrics/Adele.txt
+  inflating: lyrics/Metallica.txt
+  inflating: lyrics/Rage_Against_The_Machine.txt
+  inflating: lyrics/Taylor_Swift.txt
+  inflating: lyrics/Keith_Urban.txt
+  inflating: lyrics/Ed_Sheeran.txt
+  inflating: lyrics/Justin_Bieber.txt
+  inflating: lyrics/Rihanna.txt
+  inflating: lyrics/Leonard_Cohen.txt
+  inflating: song0.txt
+  inflating: song1.txt
+  inflating: song2.txt
+  inflating: song3.txt
+  inflating: song4.txt
+</pre>
+
+The lyrics for each song have been re-ordered to avoid copyright concerns.
+<p>
+The zip file also contains lyrics from 5 songs where we don't know the artists.
+
+{{execute("cat song0.txt;cat song1.txt;cat song2.txt;cat song3.txt;cat song4.txt", cwd="solutions")}}
+
+They are each from one of the artists in the dataset but they are not from
+a song in the dataset.
+
+<h3>Exercise: Total Words</h3>
+
+Write a Perl script <code>total_words.pl</code> which counts the total number of words
+found in its input (<code>STDIN</code>).
+<p>
+For the purposes of this program and the following programs we will define a word to
+be maximal non-empty contiguous sequences of alphabetic characters (<code>[a-zA-Z]</code>).
+<p>
+Any characters other than <code>[a-zA-Z]</code> separate words.
+<p>
+So for example the phrase "<code>The soul's desire</code>" contains 4 words: <code>("The", "soul", "s", "desire")</code>
+<p>
+For example:
+
+{{execute("./total_words.pl <lyrics )}}="" <b="" <lyrics="" cwd="solutions" justin_bieber.txt;.="" metallica.txt;.="" rihanna.txt",="" total_words.pl="">Hint</lyrics></p></p></p></p></p>: if your word counts are out a little you might be counting empty strings (split can return these).
+As usual:
+
+{{autotest_reminder("total_words.pl")}}
+
+<p></p>
+<h3>Exercise: Count Word</h3>
+
+Write a Perl script <code>count_word.pl</code> which counts the number of times
+a specified word is found in its input (<code>STDIN</code>).
+<p>
+A word is as defined for the previous exercise.
+<p>
+The word you should count will be specified as a command line argument.
+<p>
+You program should ignore the case of words.
+<p>
+For example:
+
+{{execute("./count_word.pl death <lyrics )}}="" <b="" <lyrics="" count_word.pl="" cwd="solutions" death="" ed_sheeran.txt;.="" justin_bieber.txt;.="" love="" metallica.txt;.="" rage_against_the_machine.txt",="">Hint</lyrics></p></p></p></p>: modify the code from the last exercise.
+<p>
+<b>Hint</b>: the Perl functions <code>uc</code> &amp; <code>lc</code> convert strings to lowercase &amp; uppercase respectively.
+<p>
+
+{{autotest_reminder("count_word.pl")}}
+
+<p></p>
+<h3>Exercise: Word Frequency</h3>
+
+Write a Perl script <code>frequency.pl</code>
+which prints the frequency with which each artist uses a  word specified as an argument.
+<p>
+So if Justin Bieber  uses the word <b>"love"</b> 493 times in the 46583 words of his songs, then its frequency is <code>493/46583 = 0.0105832599875491</code>.
+<p>
+For example:
+
+
+{{execute("./frequency.pl love", cwd="solutions")}}
+
+So of these artists, Ed Sheeran uses the word <b>"love"</b> most frequently.
+If you choose a word a randomly from an Ed Sheeran song the probability it will be "love"
+is just over in 1 in a hundred (1%).
+<p>
+Make sure your Perl script produces exactly the output above (the printf format is <code>"%4d/%6d = %.9f %s\n"</code>).
+<p>
+Note you should ignore case (change A-Z to a-z).
+<p>
+You should treat as a word any sequence of alphabetic characters.
+<p>
+You should treat non-alphabetic characters (characters other than a-z) as spaces.
+<p>
+<b>Hint</b>: use a hash table of hash tables indexed by artist and word to store the word counts.
+<p>
+<b>Hint</b>: this loop executes once for each <code>.txt</code> file in the directory <code>lyrics</code>.
+<pre class="program">
+    foreach $file (glob "lyrics/*.txt") {
+        print "$file\n";
+    }
+</pre>
+<p>
+<b>Hint</b>: reuse code from the last exercise.
+
+{{autotest_reminder("frequency.pl")}}
+
+<p></p>
+<h3>Exercise: Word Log Probability</h3>
+
+Now suppose we have the song line <b>"truth is beauty"</b>. If David Bowie uses the
+word <b>"truth"</b> with frequency 0.000146727 and the
+word <b>"is"</b> with frequency 0.005898407, the word <b>"beauty"</b> with frequency 0.000264108.
+We can estimate the probability of Bowie writing the phrase <b>"truth is beauty"</b>
+as:
+
+<pre class="program">
+0.000146727 * 0.005898407 * 0.000264108 == 2.28573738067596e-10
+</pre>
+
+We could similarly estimate probabilities for each of the other 9 artists, and
+then determine which of the 10 artists is most likely to sing <b>"truth is beauty"</b> (it's Leonard Cohen).
+<p>
+A sidenote: we are actually making a large simplifying assumption in calculating this probability. It is
+often  called the <a href="http://en.wikipedia.org/wiki/Bag_of_words_model"><b>bag of words model</b></a>.
+<p>
+Multiplying probabilities like this quickly leads to very small numbers and may result in
+arithmetic underflow of our floating point representation.
+A common solution to this underflow is instead to  work with the <b>log</b> of the numbers.
+<p>
+So instead we will calculate the the log of the probability of the phrase.
+You this by adding the log of the probabilities of each word. For example,
+you calculate the log-probability of Bowie singing the phrase <b>"Truth is beauty."</b> like this:
+
+<pre class="program">
+log(0.000146727) + log(0.005898407) + log(0.000264108) == -22.1991622527613 == log(2.28573738067596e-10)
+</pre>
+
+Log-probabilities can be used directly to determine the most likely artist, as the artist
+with the highest log-probability will also have the highest probability.
+<p>
+Another problem is that we might be given a word that an artist has not used in the dataset we
+have.  For example:
+
+{{execute("./frequency.pl fear", cwd="solutions")}}
+
+It is not useful to assume there is zero probability that <b>Ed Sheeran</b> would use the word <b>fear</b>
+in a song even though he hasn't used it previously.
+<p>
+You should avoid this when estimating probabilities by adding 1 to the count of occurrences
+of each word. So for example we'd estimate the probability of Ed Sheeran using the word
+<b>fear</b> as (0+1)/18205 and the probability of Metallica using the word
+<b>fear</b> as (39+1)/38082.
+This is a simple version of <a href="http://en.wikipedia.org/wiki/Additive_smoothing">Additive smoothing</a>.
+<p>
+Write a perl script <code>log_probability.pl</code> which given an argument prints the estimate
+log of the probability that an artist would use this word. For example:
+
+{{execute("./log_probability.pl fear", cwd="solutions")}}
+
+You will only need to copy your <code>frequency.pl</code> and make a small modification.
+Make sure your output matches the above exactly (the printf format is <code>"log((%d+1)/%6d) = %8.4f %s\n"</code>)
+
+{{autotest_reminder("log_probability.pl")}}
+
+<p></p>
+<h3>Exercise: Identifying the Artist</h3>
+
+Write a Perl script <code>identify_artist.pl</code> that given 1 or more files, each containing   part of song),
+prints the most likely artist to have sung those words.
+<p>
+In other words, for each file given as argument you should go through all (10) artists calculating
+the log-probability that the artist sung those words  by summing the
+log-probability of that artist using each word in the file.
+You should print the artist with the highest log-probability.
+<p>
+Your program should produce exactly this output:
+
+{{execute("./identify_artist.pl song?.txt", cwd="solutions")}}
+
+<b>Hint:</b> only read each file once.  Store the data in a (2-dimensional) hash.
+If you read the files many times your program will be very slow and exceed autotest time limits.
+
+<p>
+You may find it helpful to add a '-d' flag which provides debugging information (this is optional),
+for example:
+
+{{execute("./identify_artist.pl -d song2.txt", cwd="solutions")}}
+
+<b>Hint:</b> you may like to create simpler input to use in debugging, for example:
+
+<pre class="command_line">
+<kbd class="shell">echo Andrew Rocks &gt;andrew_rocks.txt</kbd>
+</pre>
+
+
+{{execute("./log_probability.pl Andrew;./log_probability.pl Rocks;./identify_artist.pl -d andrew_rocks.txt", cwd="solutions")}}
+
+<b>Hint:</b> if a word appears multiple times its log-probability needs to be summed multiple times.
+
+<pre class="command_line">
+<kbd class="shell">echo echo echo &gt;echo.txt</kbd>
+</pre>
+
+{{execute("cat echo.txt;./log_probability.pl echo;./identify_artist.pl -d echo.txt", cwd="solutions")}}
+
+{{autotest_reminder("identify_artist.pl")}}
+
+<p></p>
+<h3>Challenge Exercise: Introduction</h3>
+
+Re-implement the above exercises in Python.
+<p>
+The <a href="../../code/python">example Python scripts</a> and links
+to external Python resources should help - but you will need more info - Google is your friend.
+<p>
+<b>Hints</b> for <code>total_words.py</code> &amp;  <code>count_word.py</code>:
+<p>
+This loop executes for each line of stdin:
+
+<pre class="program">
+import sys
+for line in sys.stdin:
+    print line
+</pre>
+
+The function <code>re.split</code> or the function <code>re.findall</code> could be used to separate words.
+<p>
+<b>Hints</b> for <code>frequency.py</code>, <code>log_probability.py</code> &amp; <code>identify_artist.py</code>:
+<p>
+Beware Python dicts need a slightly different approach to Perl hashes, and also
+Perl &amp; Python division have different semantics.
+<p>
+This loop executes once for each <code>.txt</code> file in the directory <code>artists</code>.
+
+<pre class="program">
+import glob
+for file in glob.glob("lyrics/*.txt"):
+    print file
+</pre>
+<p>
+You might find <code>math.log</code>, <code>sorted</code>, <code>re.sub</code> and  <code>collections.defaultdict</code> useful.
+
+<h3>Challenge Exercise: Total Words in Python</h3>
+
+{{autotest_reminder("total_words.py")}}
+
+<p></p>
+<h3>Challenge Exercise: Count Word in Python</h3>
+
+{{autotest_reminder("count_word.py")}}
+
+<p></p>
+<h3>Challenge Exercise: Word Frequency in Python</h3>
+
+{{autotest_reminder("frequency.py")}}
+
+<p></p>
+<h3>Challenge Exercise: Word Log Probability in Python</h3>
+
+
+{{autotest_reminder("log_probability.py")}}
+
+<p></p>
+<h3>Challenge Exercise: Identifying the Artist in Python</h3>
+
+{{autotest_reminder("identify_artist.py")}}
+
+<p></p>
+
+{% endblock %}
+</p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p></p>
